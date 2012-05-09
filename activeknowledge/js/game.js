@@ -37,6 +37,7 @@ function loadResources()
 	gbox.addImage('plyr_btm_sprite', 'res/img/bottomsheet.png');
 	gbox.addImage('plyr_top_sprite', 'res/img/topsheet.png');
 	gbox.addImage('plyr_head_sprite', 'res/img/headsheet.png');
+	gbox.addImage('plyr_helm_sprite', 'res/img/helmetsheet.png');
 	
 	gbox.addTiles({
 	    id:      'player_tiles', // set a unique ID for future reference
@@ -69,13 +70,24 @@ function loadResources()
 		gapy:	 0
 	});
 	
-	// PLAYER: Top tiles
+	// PLAYER: Head tiles
 	gbox.addTiles({
 		id:		'plyr_head_tiles',
 		image:	'plyr_head_sprite',
 		tileh:	24,
 		tilew:	24,
 		tilerow: 6,
+		gapx:	 0,
+		gapy:	 0
+	});
+	
+	// PLAYER: Helmet tiles
+	gbox.addTiles({
+		id:		'plyr_helm_tiles',
+		image:	'plyr_helm_sprite',
+		tileh:	24,
+		tilew:	24,
+		tilerow: 4,
 		gapx:	 0,
 		gapy:	 0
 	});
@@ -89,7 +101,7 @@ function loadResources()
 		image: 'map_spritesheet',
 		tileh: 16,
 		tilew: 16,
-		tilerow: 6,
+		tilerow: 2,
 		gapx: 0,
 		gapy: 0
 	});
@@ -278,13 +290,14 @@ function addPlayer()
 		tileset: 'player_tiles',	// Image set for sprite animation
 		bottom_tileset: 'plyr_btm_tiles',	// sprite leg section
 		top_tileset: 'plyr_top_tiles',		// sprite body section
-		head_tileset: 'plyr_head_tiles',
+		head_tileset: 'plyr_head_tiles',	// sprite head section
+		helm_tileset: 'plyr_helm_tiles',	// sprite helm section
 		
 		// Starting body types
 		btm_type: 'roller',
 		top_type: 'body',
 		head_type: 'face',
-		helmet_type: 'green',
+		helm_type: 'helmGreen',
 		
 		// Relative body part locations from player (0, 0)
 		// TODO: Set collision box to appropriately fit parts
@@ -294,8 +307,8 @@ function addPlayer()
 		top_y: 19,
 		head_x: 4,
 		head_y: 0,
-		helmet_x: 0,
-		helmet_y: 0,
+		helm_x: 4,
+		helm_y: -1,
 			
 		// Set collision box for player
 		// TODO: Test, may not need this for toys.platformer.
@@ -352,6 +365,27 @@ function addPlayer()
 				faceLeft:		{ speed: 3, frames: [4, 5] }
 			};
 			this.headAnimIndex = this.head_type+this.animIndex;
+			
+			this.helmAnimList = {
+				helmBlueRight: { speed: 3, frames: [8, 9] },
+				helmYellowRight: { speed: 1, frames: [10, 11] },
+				helmRedRight: { speed: 1, frames: [12, 13] },
+				helmGreenRight: { speed: 1, frames: [14, 15] },
+				helmBlueLeft: { speed: 1, frames: [16, 17] },
+				helmYellowLeft: { speed: 1, frames: [18, 19] },
+				helmRedLeft: { speed: 1, frames: [20, 21] },
+				helmGreenLeft: { speed: 1, frames: [22, 23] },	
+				
+				helmBlueStillRight: { speed: 1, frames: [0] },
+				helmYellowStillRight: { speed: 1, frames: [1] },
+				helmRedStillRight: { speed: 1, frames: [2] },
+				helmGreenStillRight: { speed: 1, frames: [3] },
+				helmBlueStillLeft: { speed: 1, frames: [4] },
+				helmYellowStillLeft: { speed: 1, frames: [5] },
+				helmRedStillLeft: { speed: 1, frames: [6] },
+				helmGreenStillLeft: { speed: 1, frames: [7] }
+			};
+			this.helmAnimIndex = this.helm_type+this.animIndex;
 		},
 		
 		// Step function performed during each cycle (*before* rendering)
@@ -368,6 +402,7 @@ function addPlayer()
 					this.btmAnimIndex = this.btm_type+this.animIndex;
 					this.topAnimIndex = this.top_type+this.animIndex;
 					this.headAnimIndex = this.head_type+this.animIndex;
+					this.helmAnimIndex = this.helm_type+this.animIndex;
 				}
 				if (this.animIndex == 'Left')
 				{
@@ -375,6 +410,7 @@ function addPlayer()
 					this.btmAnimIndex = this.btm_type+this.animIndex;
 					this.topAnimIndex = this.top_type+this.animIndex;
 					this.headAnimIndex = this.head_type+this.animIndex;
+					this.helmAnimIndex = this.helm_type+this.animIndex;
 				}
 			}
 			if (this.accx > 0 && this.accy == 0)
@@ -383,6 +419,7 @@ function addPlayer()
 				this.btmAnimIndex = this.btm_type+this.animIndex;
 				this.topAnimIndex = this.top_type+this.animIndex;
 				this.headAnimIndex = this.head_type+this.animIndex;
+				this.helmAnimIndex = this.helm_type+this.animIndex;
 			}
 			if (this.accx < 0 && this.accy == 0)
 			{
@@ -390,6 +427,7 @@ function addPlayer()
 				this.btmAnimIndex = this.btm_type+this.animIndex;
 				this.topAnimIndex = this.top_type+this.animIndex;
 				this.headAnimIndex = this.head_type+this.animIndex;
+				this.helmAnimIndex = this.helm_type+this.animIndex;
 			}
 			
 			// Set the animation
@@ -398,6 +436,7 @@ function addPlayer()
 				this.btmFrame = help.decideFrame(frameCount, this.btmAnimList[this.btmAnimIndex]);
 				this.topFrame = help.decideFrame(frameCount, this.topAnimList[this.topAnimIndex]);
 				this.headFrame = help.decideFrame(frameCount, this.headAnimList[this.headAnimIndex]);
+				this.helmFrame = help.decideFrame(frameCount, this.helmAnimList[this.helmAnimIndex]);
 			}
 			
 			// Apply friction to acceleration to prevent crazy physics
@@ -417,7 +456,7 @@ function addPlayer()
 		
 		// Draw the player tile with updated position/properties
 		blit: function() {
-			/*
+			/* Whole character from playersheet.png
 			var blitData = {
 					tileset: this.tileset,
 					tile:	 this.frame,
@@ -466,10 +505,23 @@ function addPlayer()
 				alpha:	 1.0
 			};
 			
+			// Draw head
+			var helmBlitData = {
+				tileset: this.helm_tileset,
+				tile:	 this.helmFrame,
+				dx:		 this.x+this.helm_x,
+				dy:		 this.y+this.helm_y,
+				fliph:	 this.fliph,
+				flipv:	 this.flipv,
+				camera:	 this.camera,
+				alpha:	 1.0
+			};
+			
 			// gbox.blitTile(gbox.getBufferContext(), blitData);
 			gbox.blitTile(gbox.getBufferContext(), btmBlitData);
 			gbox.blitTile(gbox.getBufferContext(), topBlitData);
 			gbox.blitTile(gbox.getBufferContext(), headBlitData);
+			gbox.blitTile(gbox.getBufferContext(), helmBlitData);
 		}
 	});
 }

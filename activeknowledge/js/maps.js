@@ -90,13 +90,14 @@ maps = [
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
-"x                                                                            x",
+"x                    l                                                       x",
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ], 
 [ 
 	[null, ' '], 
 	[0, 'o'], 
-	[1, 'x'] 
+	[1, 'x'],
+	[2, 'l']
 ]]
 
 ];
