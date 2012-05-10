@@ -43,7 +43,7 @@ function loadResources()
 	    id:      'player_tiles', // set a unique ID for future reference
   	    image:   'player_sprite', // Use the 'sprites' image, as loaded above
   	    tileh:   64,
-  	    tilew:   32,
+  	    tilew:   16,
   	    tilerow: 7,
   	    gapx:    0,
   	    gapy:    0
@@ -216,7 +216,11 @@ function main()
 			return t != null;
 		},
 		tileIsSolidFloor: function(obj, t) {
-			return t != null;	
+			// Change body if tile is a body part
+			if (t == 2)
+				obj.btm_type='legs';
+			
+			return (t != null) && (t < 2);	
 		}
 	};
 	// Set height and width parameters of map
@@ -301,20 +305,19 @@ function addPlayer()
 		
 		// Relative body part locations from player (0, 0)
 		// TODO: Set collision box to appropriately fit parts
-		bottom_x: 4,
-		bottom_y: 40,
-		top_x: 4,
+		btm_x: -4,
+		btm_y: 40,
+		top_x: -4,
 		top_y: 19,
-		head_x: 4,
+		head_x: -4,
 		head_y: 0,
-		helm_x: 4,
+		helm_x: -4,
 		helm_y: -1,
 			
 		// Set collision box for player
 		// TODO: Test, may not need this for toys.platformer.
 		// toys.topview object's default colh value is bottom half of tile,
 		// so character can overlap map features.
-		colh: gbox.getTiles('player_tiles').tileh,
 		
 		// Run once upon creation, initialize player object
 		initialize: function() {
@@ -329,10 +332,10 @@ function addPlayer()
 			
 			// Set list of frames for each animation
 			this.animList = {
-				StillRight:	{ speed: 1, frames: [0]		},
-				Right:		{ speed: 3, frames: [1, 2]	},
-				StillLeft:	{ speed: 1, frames: [3]		},
-				Left:		{ speed: 3, frames: [4, 5]	}
+				StillRight:	{ speed: 1, frames: [0]	},
+				Right:		{ speed: 3, frames: [1, 2] },
+				StillLeft:	{ speed: 1, frames: [3]	},
+				Left:		{ speed: 3, frames: [4, 5] }
 			};
 			this.animIndex = 'StillRight';			
 			
@@ -367,31 +370,37 @@ function addPlayer()
 			this.headAnimIndex = this.head_type+this.animIndex;
 			
 			this.helmAnimList = {
-				helmBlueRight: { speed: 3, frames: [8, 9] },
-				helmYellowRight: { speed: 1, frames: [10, 11] },
-				helmRedRight: { speed: 1, frames: [12, 13] },
-				helmGreenRight: { speed: 1, frames: [14, 15] },
-				helmBlueLeft: { speed: 1, frames: [16, 17] },
-				helmYellowLeft: { speed: 1, frames: [18, 19] },
-				helmRedLeft: { speed: 1, frames: [20, 21] },
-				helmGreenLeft: { speed: 1, frames: [22, 23] },	
+				helmBlueRight: 		{ speed: 3, frames: [8, 9] },
+				helmYellowRight: 	{ speed: 1, frames: [10, 11] },
+				helmRedRight: 		{ speed: 1, frames: [12, 13] },
+				helmGreenRight: 	{ speed: 1, frames: [14, 15] },
+				helmBlueLeft: 		{ speed: 1, frames: [16, 17] },
+				helmYellowLeft: 	{ speed: 1, frames: [18, 19] },
+				helmRedLeft: 		{ speed: 1, frames: [20, 21] },
+				helmGreenLeft: 		{ speed: 1, frames: [22, 23] },	
 				
-				helmBlueStillRight: { speed: 1, frames: [0] },
-				helmYellowStillRight: { speed: 1, frames: [1] },
-				helmRedStillRight: { speed: 1, frames: [2] },
-				helmGreenStillRight: { speed: 1, frames: [3] },
-				helmBlueStillLeft: { speed: 1, frames: [4] },
-				helmYellowStillLeft: { speed: 1, frames: [5] },
-				helmRedStillLeft: { speed: 1, frames: [6] },
-				helmGreenStillLeft: { speed: 1, frames: [7] }
+				helmBlueStillRight: 	{ speed: 1, frames: [0] },
+				helmYellowStillRight: 	{ speed: 1, frames: [1] },
+				helmRedStillRight: 		{ speed: 1, frames: [2] },
+				helmGreenStillRight: 	{ speed: 1, frames: [3] },
+				helmBlueStillLeft: 		{ speed: 1, frames: [4] },
+				helmYellowStillLeft: 	{ speed: 1, frames: [5] },
+				helmRedStillLeft: 		{ speed: 1, frames: [6] },
+				helmGreenStillLeft: 	{ speed: 1, frames: [7] }
 			};
 			this.helmAnimIndex = this.helm_type+this.animIndex;
 		},
 		
 		// Step function performed during each cycle (*before* rendering)
 		first: function() {
+			//alert('w:' + this.w + ' h:' + this.h);
+			
 			// "Keys" methods apply acceleration based on direction pressed.
 			toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
+			
+			// Can only jump if using legs
+			if (this.btm_type == 'legs')
+				toys.platformer.jumpKeys(this, { jump: 'a' });
 			
 			// TODO: Last left or last right variables to determine which way to face.
 			// Or, just check against what the last animation was?
@@ -432,7 +441,7 @@ function addPlayer()
 			
 			// Set the animation
 			if (frameCount % this.animList[this.animIndex].speed == 0) {
-				this.frame = help.decideFrame(frameCount, this.animList[this.animIndex]);
+				//this.frame = help.decideFrame(frameCount, this.animList[this.animIndex]);
 				this.btmFrame = help.decideFrame(frameCount, this.btmAnimList[this.btmAnimIndex]);
 				this.topFrame = help.decideFrame(frameCount, this.topAnimList[this.topAnimIndex]);
 				this.headFrame = help.decideFrame(frameCount, this.headAnimList[this.headAnimIndex]);
@@ -473,8 +482,8 @@ function addPlayer()
 			var btmBlitData = {
 				tileset: this.bottom_tileset,
 				tile: 	 this.btmFrame,
-				dx:		 this.x+this.bottom_x,
-				dy:		 this.y+this.bottom_y,
+				dx:		 this.x+this.btm_x,
+				dy:		 this.y+this.btm_y,
 				fliph:	 this.fliph,
 				flipv:	 this.flipv,
 				camera:  this.camera,
