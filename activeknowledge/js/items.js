@@ -1,7 +1,7 @@
 /*
- * maps.js
+ * items.js
  * 2012 Chris Mahoney
- * Maps for <<GAMENAME>>, contained within global array.
+ * Items for <<GAMENAME>>, contained within global array.
  * Format as follows:
  * maps[0]:
  * 	 maps[0][0]: map tile data. each character represents a different
@@ -21,7 +21,7 @@
  * 	  only used for basic testing (map/enemy collision, etc.).
  * 1: Platform test room: Test room with platforms for movement testing.
  */
-maps = [
+item_maps = [
         
 // maps[0]: Small empty test room
 [[
@@ -52,13 +52,15 @@ maps = [
 "x                                      x",
 "x                                      x",
 "x                                      x",
-"x                                      x",
+"x       l r s j                        x",
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ], 
 [ 
 	[null, ' '], 
-	[0, 'o'], 
-	[1, 'x'] 
+	[0, 'x'],
+	[1, 'r'],
+	[2, 's'],
+	[3, 'j']
 ]
 ],
 
@@ -86,19 +88,25 @@ maps = [
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
-"x                                       ooooooo                              x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x           l t s j b y g r                                                  x",
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ], 
 [ 
 	[null, ' '], 
-	[0, 'o'], 
-	[1, 'x'],
-	[2, 'l']
+	[null, 'x'],
+	[0, 'l'],
+	[1, 't'],
+	[2, 's'],
+	[3, 'j'],
+	[4, 'b'],
+	[5, 'y'],
+	[6, 'g'],
+	[7, 'r']
 ],
 ]
 

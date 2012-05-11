@@ -32,12 +32,14 @@ function loadResources()
 	// Add logo image
 	gbox.addImage('logo', 'res/img/logo.png');
 	
-	// Minivan sprite TODO: animation
+	// Player sprite
 	gbox.addImage('player_sprite', 'res/img/playersheet.png');
 	gbox.addImage('plyr_btm_sprite', 'res/img/bottomsheet.png');
 	gbox.addImage('plyr_top_sprite', 'res/img/topsheet.png');
 	gbox.addImage('plyr_head_sprite', 'res/img/headsheet.png');
 	gbox.addImage('plyr_helm_sprite', 'res/img/helmetsheet.png');
+	gbox.addImage('map_sprite', 'res/img/mapsheet.png');
+	gbox.addImage('item_sprite', 'res/img/itemsheet.png');
 	
 	gbox.addTiles({
 	    id:      'player_tiles', // set a unique ID for future reference
@@ -91,17 +93,24 @@ function loadResources()
 		gapx:	 0,
 		gapy:	 0
 	});
-
-	// Load map spritesheet
-	gbox.addImage('map_spritesheet', 'res/img/map_sheet.png');
 	
 	// Load map tiles
 	gbox.addTiles({
 		id: 'map_tiles',
-		image: 'map_spritesheet',
+		image: 'map_sprite',
 		tileh: 16,
 		tilew: 16,
 		tilerow: 2,
+		gapx: 0,
+		gapy: 0
+	});
+	
+	gbox.addTiles({
+		id: 'item_tiles',
+		image: 'item_sprite',
+		tileh: 16,
+		tilew: 16,
+		tilerow: 4,
 		gapx: 0,
 		gapy: 0
 	});
@@ -125,7 +134,7 @@ function loadResources()
 function main()
 {
 	// Create group for game to reside in
-	gbox.setGroups(['background', 'player', 'game']);
+	gbox.setGroups(['background', 'items', 'player', 'game']);
 	
 	// Create game object in 'game' group
 	maingame = gamecycle.createMaingame('game', 'game');
@@ -226,10 +235,22 @@ function main()
 	// Set height and width parameters of map
 	map = help.finalizeTilemap(map);
 	
+	items = {
+		tileset: 'item_tiles',
+		map: loadItems(LVL_EMPTY_TEST_LG)
+		
+		// TODO: tile collision
+		
+	};
+	items = help.finalizeTilemap(items);
+	
 	// Create temp canvas for map with same width/height
 	gbox.createCanvas('map_canvas', { w: map.w, h: map.h });
+	gbox.createCanvas('item_canvas', { w: items.w, h: items.h });
 	// Draw map to temp canvas
 	gbox.blitTilemap(gbox.getCanvasContext('map_canvas'), map);
+	// Draw items to canvas
+	gbox.blitTilemap(gbox.getCanvasContext('item_canvas'), items);
 	
 	// Start game loop
 	gbox.go();
@@ -242,6 +263,12 @@ function main()
  */
 function loadMap(level) {
 	return help.asciiArtToMap(maps[level][0], maps[level][1]);
+}
+/*
+ * loadItems(level): Returns item map
+ */
+function loadItems(level) {
+	return help.asciiArtToMap(item_maps[level][0], item_maps[level][1]);
 }
 
 /*
@@ -275,6 +302,35 @@ function addMap()
 				dy: 0,
 				dw: gbox.getCanvas('map_canvas').width,
 				dh: gbox.getCanvas('map_canvas').height,
+				sourcecamera: true
+				});
+			
+			// Draw items to screen. These items will be removed on collision.
+			
+		}
+	});
+	
+	gbox.addObject({
+		id: 'items_id',
+		group: 'items',
+		
+		first: function() {
+			// TODO: Cleanup items picked up
+			
+		},
+		blit: function() {
+			// Clear canvas
+			//gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
+			
+			// Center camera on player
+			//followCamera(gbox.getObject('player', 'player_id'), { w: map.w, h: map.h });
+			
+			gbox.blit(gbox.getBufferContext(), gbox.getCanvas('item_canvas'), 
+				{
+				dx: 0,
+				dy: 0,
+				dw: gbox.getCanvas('item_canvas').width,
+				dh: gbox.getCanvas('item_canvas').height,
 				sourcecamera: true
 				});
 		}
@@ -459,6 +515,10 @@ function addPlayer()
 			 * Tolerance value creates more organic collision box.
 			 * TODO: Only check for vertical collision if this.y has changed.
 			 */
+			this.collisionCheck();
+		},
+		
+		collisionCheck: function() {
 			toys.platformer.verticalTileCollision(this, map, 'map');
 			toys.platformer.horizontalTileCollision(this, map, 'map', 1);
 		},
