@@ -1,16 +1,37 @@
 //Global game object
 var maingame;
 var map;
+var items;
+var timeStarted;
+var currentLevel;
 var frameCount = 0;
 
 //------------ CONSTANTS ------------//
+// Display
+DISPLAY_WIDTH = 320;
+DISPLAY_HEIGHT = 240;
+DISPLAY_ZOOM_LVL = 2;
+
+// Timer
+var TIME_LIMIT = 10;
+
 // Special level pointers
-LVL_EMPTY_TEST_SM = 0;			// Small empty test room
-LVL_EMPTY_TEST_LG = 1;		// Large empty test room
+var LVL_EMPTY_TEST_SM = 0;			// Small empty test room
+var LVL_EMPTY_TEST_LG = 1;		// Large empty test room
 
 // Camera
-CAM_DEADZONE_X = 96;
-CAM_DEADZONE_Y = 96;
+var CAM_DEADZONE_X = 96;
+var CAM_DEADZONE_Y = 96;
+
+// Object sizes
+var SIZE_PLAYER_W = 16;
+var SIZE_PLAYER_H = 64;
+var SIZE_ITEM = 16;
+
+// Map array pointers
+var MAP_ARRAY_DATA = 0;
+var MAP_TILE_DATA = 1;
+var MAP_ITEM_DATA = 2;
 
 // On load, run loadResources
 window.addEventListener('load', loadResources, false);
@@ -21,9 +42,9 @@ function loadResources()
 	// Initialize Akihabara with default settings, passing browser title
 	help.akihabaraInit({
 		title: 'Active Knowledge', 
-		width: 320,
-		height: 240,
-		zoom: 2
+		width: DISPLAY_WIDTH,
+		height: DISPLAY_HEIGHT,
+		zoom: DISPLAY_ZOOM_LVL
 	});
 
 	// Add font letter image as 'font'
@@ -53,7 +74,7 @@ function loadResources()
 	
 	// PLAYER: Bottom tiles
 	gbox.addTiles({
-		id:		'plyr_btm_tiles',
+		id:		'plyr_tiles_btm',
 		image:	'plyr_btm_sprite',
 		tileh:	24,
 		tilew:	24,
@@ -63,7 +84,7 @@ function loadResources()
 	});
 	// PLAYER: Top tiles
 	gbox.addTiles({
-		id:		'plyr_top_tiles',
+		id:		'plyr_tiles_top',
 		image:	'plyr_top_sprite',
 		tileh:	24,
 		tilew:	24,
@@ -74,7 +95,7 @@ function loadResources()
 	
 	// PLAYER: Head tiles
 	gbox.addTiles({
-		id:		'plyr_head_tiles',
+		id:		'plyr_tiles_head',
 		image:	'plyr_head_sprite',
 		tileh:	24,
 		tilew:	24,
@@ -85,7 +106,7 @@ function loadResources()
 	
 	// PLAYER: Helmet tiles
 	gbox.addTiles({
-		id:		'plyr_helm_tiles',
+		id:		'plyr_tiles_helm',
 		image:	'plyr_helm_sprite',
 		tileh:	24,
 		tilew:	24,
@@ -100,7 +121,7 @@ function loadResources()
 		image: 'map_sprite',
 		tileh: 16,
 		tilew: 16,
-		tilerow: 2,
+		tilerow: 4,
 		gapx: 0,
 		gapy: 0
 	});
@@ -135,6 +156,9 @@ function main()
 {
 	// Create group for game to reside in
 	gbox.setGroups(['background', 'items', 'player', 'game']);
+	
+	// Set initial level
+	currentLevel = LVL_EMPTY_TEST_SM;
 	
 	// Create game object in 'game' group
 	maingame = gamecycle.createMaingame('game', 'game');
@@ -174,7 +198,7 @@ function main()
 			speed: 1
 		}); 
 		*/
-	}
+	};
 	
 	/*
 	 * pressStartIntroAnimation(reset) override
@@ -198,7 +222,7 @@ function main()
 				});
 			return gbox.keyIsHit("a");
 		}
-	}
+	};
 	
 	/*
 	 * maingame.initializeGame(): Initialization area for all 
@@ -207,72 +231,244 @@ function main()
 	maingame.initializeGame = function() {
 		// Add player
 		addPlayer();
+
+		items = loadItems(currentLevel);
+		
+		// Add items
+		for (var i in items)
+		{
+			addItem(items[i][0], items[i][1], items[i][2], items[i][3]);
+		}
 		
 		// Add map
 		addMap();
+		
+		// Get time for timer management
+		timeStarted = (new Date()).getTime();
+		
+		// Create HUD
+		maingame.hud.setWidget('time_left', {
+			widget: 'label',
+			font:	'small',
+			value:	0,
+			dx:		gbox.getScreenW()-40,
+			dy: 	25,
+			clear:	true
+		});
 	};
 	
 	/* Map object consists of:
 	 * - tileset: Tile set of map components
 	 * - map: points to function that loads map from ASCII data
-	 * - tileIsSolid: points to collision code for map tiles
+	 * - tileIsSolidCeil, tileIsSolidFloor: Collision against world tiles
+	 * 	 WORLD TILE COLLISION LOGIC
+	 * 		* 4: Nonsolid to all. Background sky tile, items change to this color when picked up.
+	 * 		* 'legs': 
+	 * 		  Roller track (3) non-solid
+	 * 		* 'roller:
+	 * 		  Roller track (3) solid
 	 */
-	map = {
-		tileset: 	 'map_tiles',
-		map: loadMap(LVL_EMPTY_TEST_LG),
-		
-		tileIsSolidCeil: function(obj, t) {
-			return t != null;
-		},
-		tileIsSolidFloor: function(obj, t) {
-			// Change body if tile is a body part
-			if (t == 2)
-				obj.btm_type='legs';
-			
-			return (t != null) && (t < 2);	
-		}
-	};
-	// Set height and width parameters of map
-	map = help.finalizeTilemap(map);
-	
-	items = {
-		tileset: 'item_tiles',
-		map: loadItems(LVL_EMPTY_TEST_LG)
-		
-		// TODO: tile collision
-		
-	};
-	items = help.finalizeTilemap(items);
-	
-	// Create temp canvas for map with same width/height
-	gbox.createCanvas('map_canvas', { w: map.w, h: map.h });
-	gbox.createCanvas('item_canvas', { w: items.w, h: items.h });
-	// Draw map to temp canvas
-	gbox.blitTilemap(gbox.getCanvasContext('map_canvas'), map);
-	// Draw items to canvas
-	gbox.blitTilemap(gbox.getCanvasContext('item_canvas'), items);
+	loadMap();
 	
 	// Start game loop
 	gbox.go();
 }
 
 /*
- * loadMap(level): Loads level tile data from maps array at int index specified
- * 				   in level. First argument is ASCII data array index, second
- * 				   is location of translation info.
+ * loadMap(): Populates map object to match current level.
  */
-function loadMap(level) {
-	return help.asciiArtToMap(maps[level][0], maps[level][1]);
-}
-/*
- * loadItems(level): Returns item map
- */
-function loadItems(level) {
-	return help.asciiArtToMap(item_maps[level][0], item_maps[level][1]);
+function loadMap() {
+	map = {
+		tileset: 	 'map_tiles',
+		map: loadMapData(currentLevel),
+		
+		tileIsSolidCeil: function(obj, t) {
+			var ceilingCheck = false;
+			ceilingCheck = (t != 4);
+			return ceilingCheck;
+		},
+		tileIsSolidFloor: function(obj, t) {
+			var floorCheck = false;
+			
+			switch (obj.btm_type)
+			{
+				case 'legs':
+				case 'spring':
+				case 'jetpack':
+					floorCheck = (t != 3);
+					break;
+				case 'roller':
+					floorCheck = true;
+					break;
+					// Roller can move across 3 (roller track)
+				default:
+					alert('ERROR: Unhandled tile collision');
+					break;
+			}
+			return (floorCheck && t != 4 && t != 5 && t != 6);
+		}
+	};
+	// Set height and width parameters of map
+	map = help.finalizeTilemap(map);
+	
+	// Create temp canvas for map and items
+	gbox.createCanvas('map_canvas', { w: map.w, h: map.h });
+	gbox.createCanvas('item_canvas', { w: map.w, h: map.h });
+	// Draw map to temp canvas
+	gbox.blitTilemap(gbox.getCanvasContext('map_canvas'), map);
 }
 
 /*
- * addMap(): Creates map object and adds to game
+ * loadMapData(level): Loads level tile data from maps array at int index specified
+ * 				   in level. First argument is ASCII data array index, second
+ * 				   is location of translation info.
+ */
+function loadMapData(level) {
+	return help.asciiArtToMap(maps[level][MAP_ARRAY_DATA], maps[level][MAP_TILE_DATA]);
+} 
+
+function loadItems(level) {
+	return maps[level][2];
+}
+
+function callWhenColliding(obj,group,call) {
+	for (var i in gbox._objects[group]) {
+		
+		if ((!gbox._objects[group][i].initialize)&&toys.platformer.collides(obj, gbox._objects[group][i], 2)) {
+			if (gbox._objects[group][i][call]) {
+				gbox._objects[group][i][call](obj);
+				return i;
+			}
+		}
+		
+	}
+	return false;
+}
+
+// Set game state on win/lose conditions
+function gameOverWin() {
+	maingame.setState(801);  //gameEndingIntroAnimation
+}
+
+function gameOverLose() {
+	maingame.setState(700);	// gameoverIntroAnimation
+}
+
+function levelCompleteWin() {
+	// TODO: Show win state, wait for keypress for next level
+	loadLevel(LVL_EMPTY_TEST_LG);
+}
+
+function loadLevel(level) {
+	currentLevel = level;
+	loadMap();
+	maingame.initializeGame();
+}
+
+function addItem(tile_x, tile_y, item_type, object_id) {
+	gbox.addObject({
+		id: 	'item_id' + object_id,
+		group:	'items',
+		tileset: 'item_tiles',
+		colh:	gbox.getTiles('item_tiles').tileh,
+		colw:	gbox.getTiles('item_tiles').tilew,
+		item_type: item_type,
+		
+		isActive: false,
+	
+		initialize: function() {
+			var coord_x = tile_x*SIZE_ITEM;
+			var coord_y = tile_y*SIZE_ITEM;
+		
+			this.x = coord_x;
+			this.y = coord_y;
+			this.isActive = true;
+			
+			// Item tile setup
+			this.itemTileList = {
+					start:		{ speed: 1, frames: [0] },
+					finish:		{ speed: 1, frames: [1] },
+					
+					legs:		{ speed: 1, frames: [4] },
+					roller:		{ speed: 1, frames: [5] },
+					spring:		{ speed: 1, frames: [6] },
+					jetpack:	{ speed: 1, frames: [7] },
+					
+					blueHelm:	{ speed: 1, frames: [8] },
+					yellowHelm: { speed: 1, frames: [9] },
+					redHelm:	{ speed: 1, frames: [10] },
+					greenHelm:	{ speed: 1, frames: [11] }
+			};
+			this.itemTileIndex = item_type;	
+		},
+		
+		first: function() {
+			this.obj = gbox.getObject('player', 'player_id');
+			
+			//if (frameCount % this.itemTileList[this.itemTileIndex].speed == 0) {
+				if (this.isActive) {
+					this.frame = help.decideFrame(frameCount, this.itemTileList[this.itemTileIndex]);
+				} else {
+					this.frame = 0;
+				}
+			//}
+			
+			// TODO: Other item update activity
+		},
+		
+		blit: function() {
+			// Only draw this object if isActive == true
+			//if (this.isActive) {
+				var itemBlitData = {
+					tileset: 	this.tileset,
+					tile:		this.frame,
+					dx:			this.x,
+					dy:			this.y,
+					fliph:		this.fliph,
+					flipv:		this.flipv,
+					camera:		this.camera,
+					alpha:		1.0
+				};
+				
+				// Draw item tile to map canvas (TODO: simplify for single frame items?)
+				//if (this.isActive) {
+					gbox.blitTile(gbox.getCanvasContext('item_canvas'), itemBlitData);
+				//}
+			//}
+		},
+		
+		destroy: function() {
+			this.isActive = false;
+		},
+		
+		pickupItem: function(obj) {
+			if (this.item_type == 'finish') {
+				levelCompleteWin();
+			} else {
+			
+				// Kill self
+				if (this.isActive)
+					this.destroy();
+				
+				// Set player based on item
+				switch(this.item_type)
+				{
+					case 'legs':
+					case 'roller':
+						obj.setBodyBottom(this.item_type);
+						break;
+					default:
+						break;
+				}
+				
+			}
+		}
+	});
+}
+
+/*
+ * addMap(): Creates map canvas object
+ * 			 Also creates item canvas object
  * Fields: id, group (rendering)
  * Methods: blit (draw)
  */
@@ -286,9 +482,21 @@ function addMap()
 			// Increment frame count
 			// TODO: Modify to prevent rollover
 			frameCount++;
+			
+			// Manage timer
+			secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
+			
+			// Set hud timer to current time left.
+			maingame.hud.setValue('time_left', 'value', Math.ceil(secondsElapsed));
+		    maingame.hud.redraw();
+			
+			if (secondsElapsed >= TIME_LIMIT) {
+				//gameOverLose();	
+			}
 		},
 		
 		blit: function() {
+			
 			// Clear canvas
 			gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
 			
@@ -296,43 +504,22 @@ function addMap()
 			followCamera(gbox.getObject('player', 'player_id'), { w: map.w, h: map.h });
 			
 			// Draw tilemap canvas to screen
-			gbox.blit(gbox.getBufferContext(), gbox.getCanvas('map_canvas'), 
-				{ 
+			var mapBlitData = {
 				dx: 0, 
 				dy: 0,
 				dw: gbox.getCanvas('map_canvas').width,
 				dh: gbox.getCanvas('map_canvas').height,
-				sourcecamera: true
-				});
-			
-			// Draw items to screen. These items will be removed on collision.
-			
-		}
-	});
-	
-	gbox.addObject({
-		id: 'items_id',
-		group: 'items',
-		
-		first: function() {
-			// TODO: Cleanup items picked up
-			
-		},
-		blit: function() {
-			// Clear canvas
-			//gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
-			
-			// Center camera on player
-			//followCamera(gbox.getObject('player', 'player_id'), { w: map.w, h: map.h });
-			
-			gbox.blit(gbox.getBufferContext(), gbox.getCanvas('item_canvas'), 
-				{
-				dx: 0,
+				sourcecamera: true	
+			};
+			var itemBlitData = {
+				dx: 0, 
 				dy: 0,
 				dw: gbox.getCanvas('item_canvas').width,
 				dh: gbox.getCanvas('item_canvas').height,
-				sourcecamera: true
-				});
+				sourcecamera: true	
+			};
+			gbox.blit(gbox.getBufferContext(), gbox.getCanvas('map_canvas'), mapBlitData);
+			gbox.blit(gbox.getBufferContext(), gbox.getCanvas('item_canvas'), itemBlitData);
 		}
 	});
 }
@@ -348,13 +535,14 @@ function addPlayer()
 		id: 'player_id',			// Reference ID
 		group: 'player',			// Rendering group player belongs to
 		tileset: 'player_tiles',	// Image set for sprite animation
-		bottom_tileset: 'plyr_btm_tiles',	// sprite leg section
-		top_tileset: 'plyr_top_tiles',		// sprite body section
-		head_tileset: 'plyr_head_tiles',	// sprite head section
-		helm_tileset: 'plyr_helm_tiles',	// sprite helm section
+		
+		bottom_tileset: 'plyr_tiles_btm',	// sprite leg section
+		top_tileset: 'plyr_tiles_top',		// sprite body section
+		head_tileset: 'plyr_tiles_head',	// sprite head section
+		helm_tileset: 'plyr_tiles_helm',	// sprite helm section
 		
 		// Starting body types
-		btm_type: 'roller',
+		btm_type: 'legs',
 		top_type: 'body',
 		head_type: 'face',
 		helm_type: 'helmGreen',
@@ -369,11 +557,9 @@ function addPlayer()
 		head_y: 0,
 		helm_x: -4,
 		helm_y: -1,
-			
-		// Set collision box for player
-		// TODO: Test, may not need this for toys.platformer.
-		// toys.topview object's default colh value is bottom half of tile,
-		// so character can overlap map features.
+		
+		colw: SIZE_PLAYER_W,
+		colh: SIZE_PLAYER_H,
 		
 		// Run once upon creation, initialize player object
 		initialize: function() {
@@ -383,8 +569,10 @@ function addPlayer()
 			
 			// Set default player position
 			// TODO: Make default location a constant point
-			this.x = 20;
-			this.y = 20;
+			this.x = 32;
+			this.y = 32;
+			this.w = SIZE_PLAYER_W,
+			this.h = SIZE_PLAYER_H,
 			
 			// Set list of frames for each animation
 			this.animList = {
@@ -407,13 +595,13 @@ function addPlayer()
 			// Top animations
 			this.btmAnimList = {
 				legsStillRight:	  { speed: 1, frames: [0] },
-				legsRight:		  { speed: 3, frames: [1, 2] },
-				legsStillLeft:	  { speed: 1, frames: [3] },
-				legsLeft:		  { speed: 3, frames: [4, 5] },
-				rollerStillRight: { speed: 1, frames: [6] },
-				rollerRight: 	  { speed: 3, frames: [7, 8] },
-				rollerStillLeft:  { speed: 1, frames: [9] },
-				rollerLeft:		  { speed: 3, frames: [10, 11] }
+				legsRight:		  { speed: 3, frames: [1, 2, 3] },
+				legsStillLeft:	  { speed: 1, frames: [6] },
+				legsLeft:		  { speed: 3, frames: [7, 8, 9] },
+				rollerStillRight: { speed: 1, frames: [12] },
+				rollerRight: 	  { speed: 3, frames: [13, 14] },
+				rollerStillLeft:  { speed: 1, frames: [15] },
+				rollerLeft:		  { speed: 3, frames: [16, 17] }
 			};
 			this.btmAnimIndex = this.btm_type+this.animIndex;	
 
@@ -449,7 +637,6 @@ function addPlayer()
 		
 		// Step function performed during each cycle (*before* rendering)
 		first: function() {
-			//alert('w:' + this.w + ' h:' + this.h);
 			
 			// "Keys" methods apply acceleration based on direction pressed.
 			toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
@@ -505,9 +692,8 @@ function addPlayer()
 			}
 			
 			// Apply friction to acceleration to prevent crazy physics
+			// Apply gravity force
 			toys.platformer.handleAccellerations(this);
-			
-			// Apply forces through physics engine
 			toys.platformer.applyGravity(this);
 			
 			/*
@@ -515,12 +701,10 @@ function addPlayer()
 			 * Tolerance value creates more organic collision box.
 			 * TODO: Only check for vertical collision if this.y has changed.
 			 */
-			this.collisionCheck();
-		},
-		
-		collisionCheck: function() {
-			toys.platformer.verticalTileCollision(this, map, 'map');
-			toys.platformer.horizontalTileCollision(this, map, 'map', 1);
+			this.wallCollisionCheck();
+			
+			// Check collisions with object groups
+			callWhenColliding(this, 'items', 'pickupItem');
 		},
 		
 		// Draw the player tile with updated position/properties
@@ -591,7 +775,25 @@ function addPlayer()
 			gbox.blitTile(gbox.getBufferContext(), topBlitData);
 			gbox.blitTile(gbox.getBufferContext(), headBlitData);
 			gbox.blitTile(gbox.getBufferContext(), helmBlitData);
-		}
+		},
+		
+		wallCollisionCheck: function() {
+			toys.platformer.verticalTileCollision(this, map, 'map');
+			toys.platformer.horizontalTileCollision(this, map, 'map', 1);
+		},
+		
+		setBodyBottom: function(btm) {
+			this.btm_type = btm;
+		},
+		setBodyTop: function(top) {
+			this.top_type = top;
+		},
+		setBodyFace: function(face) {
+			this.face_type = face;
+		},
+		setBodyHelm: function(helm) {
+			this.helm_type = helm;
+		}		
 	});
 }
 

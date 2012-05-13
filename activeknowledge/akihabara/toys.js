@@ -1254,6 +1254,37 @@ var toys={
 	platformer:{
 		
 		/**
+		* CMahoney: 20120511: Adapted from topview, same call without z-check
+		* 					  platformer objects do not contain colx, coly - changed to x, y
+		* 
+		* Calls gbox.collides.
+		* @param {Object} fr The object which collision is being checked for. 
+		* <ul>
+		* <li>x{Integer}: (required)Objects x position</li>
+		* <li>y{Integer}: (required)Objects y position</li>
+		* <li>z{Integer}: (required)Objects z position</li>
+		* <li>colx{Integer}: (required)The dimension of the collision box along the x axis</li>
+		* <li>coly{Integer}: (required)The dimension of the collision box along the y axis</li>
+		* <li>colh{Integer}: (required)Collision box height</li>
+		* <li>colw{Integer}: (required)Collision box width</li>
+		* </ul>
+		* @param {Object} to The object that collision is being checked against.
+		* <ul>
+		* <li>x{Integer}: (required)Objects x position</li>
+		* <li>y{Integer}: (required)Objects y position</li>
+		* <li>z{Integer}: (required)Objects z position</li>
+		* <li>colx{Integer}: (required)Collision x</li>
+		* <li>coly{Integer}: (required)Collision y</li>
+		* <li>colh{Integer}: (required)Collision box height</li>
+		* <li>colw{Integer}: (required)Collision box width</li>
+		* </ul>
+		* @param {int} t This is the tollerance (or margin for error) on the collide function.
+		*/
+		collides:function(fr,to,t) { // Special collision.
+			return gbox.collides({x:fr.x,y:fr.y,h:fr.colh,w:fr.colw},{x:to.x,y:to.y,h:to.colh,w:to.colw},t);
+		},
+		
+		/**
 		* 
 		*/
 		initialize:function(th,data) {

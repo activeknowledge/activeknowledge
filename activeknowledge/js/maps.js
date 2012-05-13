@@ -15,6 +15,7 @@
  *   				 * null value (space) is for empty tile slots
  *   				 * 'o' character = first tile in map_tiles (0)
  *   				 * 'x' = second tile in map_tiles (1), etc. etc.
+ *   maps[0][2]: item data (one-indexed)
  *   
  * LEVEL DIRECTORY (KEEP UPDATED!)
  * 0: Empty test room: Border of solid tiles around perimeter of canvas,
@@ -24,8 +25,10 @@
 maps = [
         
 // maps[0]: Small empty test room
-[[
+[
+[
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+"x                                      x",
 "x                                      x",
 "x                                      x",
 "x                                      x",
@@ -56,50 +59,69 @@ maps = [
 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ], 
 [ 
-	[null, ' '], 
-	[0, 'o'], 
-	[1, 'x'] 
+	[0, 'X'],
+	[1, 'x'],
+	[2, 'o'],
+	[3, 'w'],
+	[4, ' '],
+	[5, 'f'],
+	[6, 'F']
+],
+[
+	[5, 28, 'start', 0],
+	[35, 28, 'finish', 1]
 ]
 ],
 
 // maps[1]: Large empty test room
-[[
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+[
+[
+"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",	// 0
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x                                                                            x",	// 5
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x                                                                            x",	// 10
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x                                                                            x",	// 15
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x                                                                            x",	// 20
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
 "x                                                                            x",
+"x                                                                            x",	// 25
+"x                                            oooooooooo                      x",
+"x                                  oooooo                                    x",
 "x                                                                            x",
-"x                                       ooooooo                              x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+"xxxxxxxxxxxxxxxwwwwwwwwwwwwwwwxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"	// 30
+//    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
 ], 
-[ 
-	[null, ' '], 
-	[0, 'o'], 
+[  
+ 	[0, 'X'],
 	[1, 'x'],
-	[2, 'l']
+	[2, 'o'],
+	[3, 'w'],
+	[4, ' '],
+	[5, 'f'],
+	[6, 'F']
 ],
+[
+ 	[5, 28, 'start', 0],
+	[13, 28, 'roller', 1],
+	[32, 28, 'legs', 2],
+	[49, 25, 'finish', 3]
 ]
-
+]
 ];
