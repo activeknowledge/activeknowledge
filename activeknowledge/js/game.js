@@ -33,6 +33,10 @@ var MAP_ARRAY_DATA = 0;
 var MAP_TILE_DATA = 1;
 var MAP_ITEM_DATA = 2;
 
+// Game states
+var GAME_STATE_LOSE = 700;
+var GAME_STATE_WIN = 801;
+
 // On load, run loadResources
 window.addEventListener('load', loadResources, false);
 
@@ -154,7 +158,7 @@ function loadResources()
 
 function main()
 {
-	// Create group for game to reside in
+	// Create object groups
 	gbox.setGroups(['background', 'items', 'player', 'game']);
 	
 	// Set initial level
@@ -178,16 +182,7 @@ function main()
 		
 		// Clear screen
 		gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
-		
-		/* Draw ball
-		var ballImage = gbox.getImage('ball');
-		gbox.blitAll(gbox.getBufferContext(), ballImage, 
-			{ 
-			dx:gbox.getScreenW()/2-(gbox.getImage('ball').width/2), 
-			dy:gbox.getScreenH()/2-(gbox.getImage('ball').height/2)
-			});
-		*/
-		
+				
 		/* Logo rising from bottom on reset
 		toys.logos.linear(this, 'rising', {
 			image: 'logo',
@@ -257,17 +252,7 @@ function main()
 		});
 	};
 	
-	/* Map object consists of:
-	 * - tileset: Tile set of map components
-	 * - map: points to function that loads map from ASCII data
-	 * - tileIsSolidCeil, tileIsSolidFloor: Collision against world tiles
-	 * 	 WORLD TILE COLLISION LOGIC
-	 * 		* 4: Nonsolid to all. Background sky tile, items change to this color when picked up.
-	 * 		* 'legs': 
-	 * 		  Roller track (3) non-solid
-	 * 		* 'roller:
-	 * 		  Roller track (3) solid
-	 */
+	// TODO: Move to initialize for game if need be
 	loadMap();
 	
 	// Start game loop
@@ -320,17 +305,24 @@ function loadMap() {
 
 /*
  * loadMapData(level): Loads level tile data from maps array at int index specified
- * 				   in level. First argument is ASCII data array index, second
+ * 				   via level. First argument is ASCII data array index, second
  * 				   is location of translation info.
  */
 function loadMapData(level) {
 	return help.asciiArtToMap(maps[level][MAP_ARRAY_DATA], maps[level][MAP_TILE_DATA]);
 } 
 
+/*
+ * loadItems(level): Populates items array with series of objects specified in maps[level][2].
+ */
 function loadItems(level) {
 	return maps[level][2];
 }
 
+/*
+ * callWhenColliding(obj, group, call): Trigger collision check by passing self, an object group name
+ * 					and a function name to call when a collision is detected. Box-to-box detection.
+ */
 function callWhenColliding(obj,group,call) {
 	for (var i in gbox._objects[group]) {
 		
@@ -347,11 +339,11 @@ function callWhenColliding(obj,group,call) {
 
 // Set game state on win/lose conditions
 function gameOverWin() {
-	maingame.setState(801);  //gameEndingIntroAnimation
+	maingame.setState(GAME_STATE_WIN);  //gameEndingIntroAnimation
 }
 
 function gameOverLose() {
-	maingame.setState(700);	// gameoverIntroAnimation
+	maingame.setState(GAME_STATE_LOSE);	// gameoverIntroAnimation
 }
 
 function levelCompleteWin() {
@@ -394,10 +386,10 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 					spring:		{ speed: 1, frames: [6] },
 					jetpack:	{ speed: 1, frames: [7] },
 					
-					blueHelm:	{ speed: 1, frames: [8] },
-					yellowHelm: { speed: 1, frames: [9] },
-					redHelm:	{ speed: 1, frames: [10] },
-					greenHelm:	{ speed: 1, frames: [11] }
+					helmBlue:	{ speed: 1, frames: [8] },
+					helmYellow: { speed: 1, frames: [9] },
+					helmRed:	{ speed: 1, frames: [10] },
+					helmGreen:	{ speed: 1, frames: [11] }
 			};
 			this.itemTileIndex = item_type;	
 		},
@@ -447,20 +439,25 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 			} else {
 			
 				// Kill self
-				if (this.isActive)
+				if (this.isActive) {
 					this.destroy();
 				
-				// Set player based on item
-				switch(this.item_type)
-				{
-					case 'legs':
-					case 'roller':
-						obj.setBodyBottom(this.item_type);
-						break;
-					default:
-						break;
+					// Set player based on item
+					switch(this.item_type)
+					{
+						case 'legs':
+						case 'roller':
+						case 'jetpack':
+							obj.setBodyBottom(this.item_type);
+							break;
+						
+						case 'helmBlue':
+							obj.setBodyHelm(this.item_type);
+							break;
+						default:
+							break;
+					}
 				}
-				
 			}
 		}
 	});
@@ -601,7 +598,11 @@ function addPlayer()
 				rollerStillRight: { speed: 1, frames: [12] },
 				rollerRight: 	  { speed: 3, frames: [13, 14] },
 				rollerStillLeft:  { speed: 1, frames: [15] },
-				rollerLeft:		  { speed: 3, frames: [16, 17] }
+				rollerLeft:		  { speed: 3, frames: [16, 17] },
+				jetpackStillRight:  { speed: 1, frames: [24] },
+				jetpackRight:		{ speed: 3, frames: [25, 26] },
+				jetpackStillLeft:  	{ speed: 1, frames: [27] },
+				jetpackLeft:		{ speed: 3, frames: [28, 29] }
 			};
 			this.btmAnimIndex = this.btm_type+this.animIndex;	
 
@@ -640,8 +641,11 @@ function addPlayer()
 			
 			// "Keys" methods apply acceleration based on direction pressed.
 			toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
+			// Jetpack can lift with up key
+			if (this.btm_type == 'jetpack')
+				toys.platformer.verticalKeys(this, { up: 'up' });
 			
-			// Can only jump if using legs
+			// Legs can jump with jump key
 			if (this.btm_type == 'legs')
 				toys.platformer.jumpKeys(this, { jump: 'a' });
 			
@@ -651,36 +655,33 @@ function addPlayer()
 				if (this.animIndex == 'Right')
 				{
 					this.animIndex = 'StillRight';
-					this.btmAnimIndex = this.btm_type+this.animIndex;
-					this.topAnimIndex = this.top_type+this.animIndex;
-					this.headAnimIndex = this.head_type+this.animIndex;
-					this.helmAnimIndex = this.helm_type+this.animIndex;
 				}
 				if (this.animIndex == 'Left')
 				{
 					this.animIndex = 'StillLeft';
-					this.btmAnimIndex = this.btm_type+this.animIndex;
-					this.topAnimIndex = this.top_type+this.animIndex;
-					this.headAnimIndex = this.head_type+this.animIndex;
-					this.helmAnimIndex = this.helm_type+this.animIndex;
 				}
 			}
 			if (this.accx > 0 && this.accy == 0)
 			{
 				this.animIndex = 'Right';
-				this.btmAnimIndex = this.btm_type+this.animIndex;
-				this.topAnimIndex = this.top_type+this.animIndex;
-				this.headAnimIndex = this.head_type+this.animIndex;
-				this.helmAnimIndex = this.helm_type+this.animIndex;
 			}
 			if (this.accx < 0 && this.accy == 0)
 			{
 				this.animIndex = 'Left';
-				this.btmAnimIndex = this.btm_type+this.animIndex;
-				this.topAnimIndex = this.top_type+this.animIndex;
-				this.headAnimIndex = this.head_type+this.animIndex;
-				this.helmAnimIndex = this.helm_type+this.animIndex;
 			}
+			// TODO: Fix stupid way to trigger movement animation on jetpack lift
+			if (this.animIndex == 'StillRight' && this.accy < 0)
+			{
+				this.animIndex = 'Right';
+			}
+			if (this.animIndex == 'StillLeft' && this.accy < 0)
+			{
+				this.animIndex = 'Right';
+			}
+			this.btmAnimIndex = this.btm_type+this.animIndex;
+			this.topAnimIndex = this.top_type+this.animIndex;
+			this.headAnimIndex = this.head_type+this.animIndex;
+			this.helmAnimIndex = this.helm_type+this.animIndex;
 			
 			// Set the animation
 			if (frameCount % this.animList[this.animIndex].speed == 0) {

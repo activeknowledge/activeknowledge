@@ -1356,6 +1356,19 @@ var toys={
 		/**
 		* 
 		*/
+		verticalKeys:function(th,keys) {
+			if (gbox.keyIsPressed(keys.up)) {
+				th.pushing=toys.PUSH_UP;
+				th.accy=help.limit(th.accy-1,-th.maxaccy,th.maxaccy);
+			} else if (gbox.keyIsPressed(keys.down)) {
+				th.pushing=toys.PUSH_DOWN;
+				th.accy=help.limit(th.accy+1,-th.maxaccy,th.maxaccy);
+			} else th.pushing=toys.PUSH_NONE;
+		},
+		
+		/**
+		* 
+		*/
 		verticalTileCollision:function(th,map,tilemap) {
 			var bottom=help.getTileInMap(th.x+(th.w/2),th.y+th.h,map,0,tilemap);
 			var top=help.getTileInMap(th.x+(th.w/2),th.y,map,0,tilemap);
