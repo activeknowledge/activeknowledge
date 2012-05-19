@@ -66,6 +66,7 @@ function loadResources()
 	gbox.addImage('font', 'res/img/font.png');
 	
 	// Add logo image
+	gbox.addImage('title', 'res/img/title.png');
 	gbox.addImage('logo', 'res/img/logo.png');
 	
 	// Player sprite
@@ -194,6 +195,7 @@ function main()
 		
 		// Clear screen
 		gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
+		gbox.blitAll(gbox.getBufferContext(),gbox.getImage('title'),{dx:0,dy:0});
 				
 		/* Logo rising from bottom on reset
 		toys.logos.linear(this, 'rising', {
@@ -219,10 +221,10 @@ function main()
 				{
 					font:"small",
 					text:"PRESS Z TO START",
-					valign:gbox.ALIGN_MIDDLE,
-					halign:gbox.ALIGN_CENTER,
-					dx:0,
-					dy:Math.floor(gbox.getScreenH()/2),
+					valign:gbox.ALIGN_TOP,
+					halign:gbox.ALIGN_LEFT,
+					dx:10,
+					dy:10,
 					dw:gbox.getScreenW(),
 					dh:Math.floor(gbox.getScreenH()/2)*2,
 					blinkspeed:10
@@ -271,15 +273,8 @@ function main()
  	
  	// Runs on beginning of new life
  	maingame.newLife=function() {
- 		// Player back to start
- 		// TODO: Halfway markers?
- 		resetPlayer();
- 		
- 		// Reset clock
- 		resetClock();
- 		
- 		// Activate game
- 		isGameActive = true;
+ 		// Reload level
+ 		loadLevel(currentLevel);
  	};
  	
  	maingame.gameIsOver=function() {
@@ -335,28 +330,16 @@ function loadMap() {
 		
 		tileIsSolidCeil: function(obj, t) {
 			var ceilingCheck = false;
-			ceilingCheck = (t != 4 && t != null);
+			ceilingCheck = (t != 4 && tileCheck(obj.helm_type, t));
 			return ceilingCheck;
 		},
 		tileIsSolidFloor: function(obj, t) {
-			var floorCheck = false;
+			var floorTest = floorCheck(obj.btm_type, t);
 			
-			switch (obj.btm_type)
-			{
-				case 'legs':
-				case 'spring':
-				case 'jetpack':
-					floorCheck = (t != 3);
-					break;
-				case 'roller':
-					floorCheck = true;
-					break;
-					// Roller can move across 3 (roller track)
-				default:
-					alert('ERROR: Unhandled tile collision');
-					break;
-			}
-			return (floorCheck && t != 4 && t != 5 && t != 6 && t != null);
+			var tileTest = tileCheck(obj.helm_type, t);
+			
+			// 20120519: Removed 5 and 6
+			return ((floorTest && tileTest) && t != 4 && t != null);
 		}
 	};
 	// Set height and width parameters of map
@@ -367,6 +350,54 @@ function loadMap() {
 	gbox.createCanvas('item_canvas', { w: map.w, h: map.h });
 	// Draw map to temp canvas
 	gbox.blitTilemap(gbox.getCanvasContext('map_canvas'), map);
+}
+
+//Tiles matching helmet are solid
+function tileCheck(helm, tile) {
+	
+	var tileCheck = false;
+	switch (helm)
+	{
+		case 'helmBlue':
+			tileCheck = (tile == 2);
+			break;
+		case 'helmRed':
+			tileCheck = (tile == 6);
+			break;
+		case 'helmGreen':
+			tileCheck = (tile == 10);
+			break;
+		case 'helmYellow':
+			tileCheck = (tile == 14);
+			break;
+		default:
+			alert('ERROR: Unhandled color tile collision');
+			break;
+	}
+	
+	return tileCheck;
+}
+
+// Check for floor, given type of bottom body part
+function floorCheck(btm, tile) {
+	
+	var floorCheck = false;
+	switch (btm)
+	{
+		case 'legs':
+		case 'spring':
+		case 'jetpack':
+			floorCheck = (tile != 3);
+			break;
+		case 'roller':
+			floorCheck = true;
+			break;
+			// Roller can move across 3 (roller track)
+		default:
+			alert('ERROR: Unhandled floor tile collision');
+			break;
+	}
+	return floorCheck;
 }
 
 /*
@@ -570,6 +601,9 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 							break;
 						
 						case 'helmBlue':
+						case 'helmGreen':
+						case 'helmRed':
+						case 'helmYellow':
 							obj.setBodyHelm(this.item_type);
 							break;
 						default:
@@ -683,7 +717,7 @@ function addPlayer()
 		btm_type: 'legs',
 		top_type: 'body',
 		head_type: 'face',
-		helm_type: 'helmGreen',
+		helm_type: 'helmBlue',
 		
 		// Relative body part locations from player (0, 0)
 		// TODO: Set collision box to appropriately fit parts
@@ -698,6 +732,9 @@ function addPlayer()
 		
 		colw: SIZE_PLAYER_W,
 		colh: SIZE_PLAYER_H,
+		
+		// Acceleration limits
+		maxaccx: 6,
 		
 		// Run once upon creation, initialize player object
 		initialize: function() {

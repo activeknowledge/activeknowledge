@@ -27,48 +27,52 @@ maps = [
 // maps[0]: Small empty test room
 [
 [
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b               b                      b",
+"b               b                      b",
+"b               b                      b",
+"b               b                      b",
+"b               b                      b",
+"b               b                      b",
+"bbbbbbbbbbbbbbbbbggggggbbbbbbbbbbbbbbbbb"
 ], 
 [ 
 	[0, 'X'],
 	[1, 'x'],
-	[2, 'o'],
 	[3, 'w'],
 	[4, ' '],
-	[5, 'f'],
-	[6, 'F']
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y']
 ],
 [
 	[5, 25, 'start', 0],
+	[12, 21, 'helmGreen', 2],
+	[24, 28, 'helmBlue', 3],
 	[35, 28, 'finish', 1]
 ]
 ],
@@ -76,52 +80,54 @@ maps = [
 // maps[1]: Large empty test room
 [
 [
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",	// 0
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 5
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 10
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 15
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 20
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 25
-"x                                            oooooooooo                      x",
-"x                                  oooooo                                    x",
-"x                                                                            x",
-"xxxxxwwwwxxxxxxwwwwwwwwwwwwwwwxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"	// 30
+"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",	// 0
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",	// 5
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",	// 10
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",	// 15
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",	// 20
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",	// 25
+"b                                            rrrrrrrrrr                      b",
+"b                                  rrrrrr                                    b",
+"b                                                                            b",
+"bbbbbwwwwbbbbbbwwwwwwwwwwwwwwwbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"	// 30
 //    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
 ], 
 [  
  	[0, 'X'],
 	[1, 'x'],
-	[2, 'o'],
 	[3, 'w'],
 	[4, ' '],
-	[5, 'f'],
-	[6, 'F']
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y']	
 ],
 [
  	[3, 25, 'start', 0],
 	[13, 28, 'roller', 1],
-	[25, 28, 'helmBlue', 4],
 	[32, 28, 'legs', 2],
+	[24, 28, 'helmRed', 4],
 	[49, 25, 'finish', 3]
 ]
 ],
