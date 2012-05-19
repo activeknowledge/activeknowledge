@@ -1,10 +1,15 @@
-//Global game object
+// Game variables
 var maingame;
 var map;
 var items;
 var timeStarted;
+var secondsElapsed = 0;
+var finishTime = 0;
 var currentLevel;
 var frameCount = 0;
+
+// Game flags
+var isGameActive = true;
 
 //------------ CONSTANTS ------------//
 // Display
@@ -34,6 +39,8 @@ var MAP_TILE_DATA = 1;
 var MAP_ITEM_DATA = 2;
 
 // Game states
+var GAME_STATE_LEVEL_START = 401;
+var GAME_STATE_LEVEL_COMPLETE = 400;
 var GAME_STATE_LOSE = 700;
 var GAME_STATE_WIN = 801;
 
@@ -164,6 +171,7 @@ function main()
 	// Set initial level
 	currentLevel = LVL_EMPTY_TEST_SM;
 	
+	
 	// Create game object in 'game' group
 	maingame = gamecycle.createMaingame('game', 'game');
 	
@@ -219,11 +227,57 @@ function main()
 		}
 	};
 	
+	// End level triggered by finish collision
+	maingame.endlevelIntroAnimation=function(reset) {
+ 		if (reset) {
+ 			toys.resetToy(this, 'default-blinker');
+ 			toys.resetToy(this, 'timer_after_level');
+ 			finishTime = secondsElapsed;
+ 		} else {
+ 			// Write level complete message
+ 			gbox.blitText(gbox.getBufferContext(),{font:'small',text:'STAGE CLEAR!',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+ 			gbox.blitText(gbox.getBufferContext(), {font:'small',text:finishTime+' SEC',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:20,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+ 			
+ 			// Fade out after a few seconds
+ 			return toys.timer.after(this,'timer_after_level',60);
+ 		}
+ 		return false;
+ 	};
+ 	
+ 	// Animation between levels
+	maingame.levelIntroAnimation=function(reset) {
+		if (reset) {
+			toys.resetToy(this, 'default-blinker');
+			toys.resetToy(this, 'timer_between_level');
+			loadLevel(1);
+			alert(currentLevel);
+		} else {
+			gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
+
+			return toys.timer.after(this,'timer_between_level',60);
+		}
+	}; 	
+ 	
+ 	// Game events runs on each frame, for global event checks
+ 	maingame.gameEvents=function() {
+ 		
+ 	};
+ 	
+ 	// Runs on beginning of new life
+ 	maingame.newLife=function() {
+ 		
+ 	};
+ 	
+ 	maingame.gameIsOver=function() {
+ 		return true;
+ 	};
+	
 	/*
 	 * maingame.initializeGame(): Initialization area for all 
 	 * 		players/objects in game.
 	 */
 	maingame.initializeGame = function() {
+		
 		// Add player
 		addPlayer();
 
@@ -246,11 +300,17 @@ function main()
 			widget: 'label',
 			font:	'small',
 			value:	0,
-			dx:		gbox.getScreenW()-40,
+			dx:		25, // gbox.getScreenW()-40,
 			dy: 	25,
 			clear:	true
 		});
+		
+		isGameActive = true;
 	};
+	
+ 	maingame.changeLevel = function() {
+ 		//alert('next level');
+ 	};	
 	
 	// TODO: Move to initialize for game if need be
 	loadMap();
@@ -346,13 +406,18 @@ function gameOverLose() {
 	maingame.setState(GAME_STATE_LOSE);	// gameoverIntroAnimation
 }
 
+/*
+ * levelCompleteWin: Triggered on finish collision. Stop gameplay,
+ * set LEVEL_COMPLETE game state, wait and then load next level.
+ */
 function levelCompleteWin() {
-	// TODO: Show win state, wait for keypress for next level
-	loadLevel(LVL_EMPTY_TEST_LG);
+	isGameActive = false;
+	maingame.setState(GAME_STATE_LEVEL_COMPLETE);
 }
 
 function loadLevel(level) {
 	currentLevel = level;
+	alert('level ' + currentLevel);
 	loadMap();
 	maingame.initializeGame();
 }
@@ -434,6 +499,7 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 		},
 		
 		pickupItem: function(obj) {
+			// Finish gate collision ends the level.
 			if (this.item_type == 'finish') {
 				levelCompleteWin();
 			} else {
@@ -477,19 +543,23 @@ function addMap()
 
 		first: function() {
 			// Increment frame count
-			// TODO: Modify to prevent rollover
+			// TODO: Consider frameCount overflow
 			frameCount++;
 			
-			// Manage timer
-			secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
-			
-			// Set hud timer to current time left.
-			maingame.hud.setValue('time_left', 'value', Math.ceil(secondsElapsed));
-		    maingame.hud.redraw();
-			
-			if (secondsElapsed >= TIME_LIMIT) {
-				//gameOverLose();	
+			// If gameplay is active...
+			if (isGameActive) {
+				// ...update level timer
+				secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
+				secondsElapsed = secondsElapsed.toFixed(3);
+				
+				// Set hud timer to current time.
+				maingame.hud.setValue('time_left', 'value', secondsElapsed);
+			    maingame.hud.redraw();
+			} else {
+				// Hide timer
+				maingame.hud.hideWidgets(['time_left']);
 			}
+			
 		},
 		
 		blit: function() {
@@ -641,9 +711,10 @@ function addPlayer()
 			
 			// "Keys" methods apply acceleration based on direction pressed.
 			toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
-			// Jetpack can lift with up key
+			// Jetpack can lift with jump key
 			if (this.btm_type == 'jetpack')
-				toys.platformer.verticalKeys(this, { up: 'up' });
+				toys.platformer.jumpKeys(this, { jetjump: 'a' });
+				//toys.platformer.verticalKeys(this, { up: 'up' });
 			
 			// Legs can jump with jump key
 			if (this.btm_type == 'legs')
@@ -670,6 +741,7 @@ function addPlayer()
 				this.animIndex = 'Left';
 			}
 			// TODO: Fix stupid way to trigger movement animation on jetpack lift
+			// TODO: Fix all this movement determination it suuuuucks!
 			if (this.animIndex == 'StillRight' && this.accy < 0)
 			{
 				this.animIndex = 'Right';

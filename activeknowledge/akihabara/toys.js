@@ -1338,7 +1338,7 @@ var toys={
 		applyGravity:function(th) {
 			th.x=toys.platformer.getNextX(th);
 			th.y=toys.platformer.getNextY(th);
-		},	
+		},
 		
 		/**
 		* 
@@ -1428,12 +1428,21 @@ var toys={
 		* 
 		*/
 		jumpKeys:function(th,key) {
-			if ((toys.platformer.canJump(th)||(key.doublejump&&(th.accy>=0)))&&gbox.keyIsHit(key.jump)&&(th.curjsize==0)) {
+			// If player can jump, or doublejump is pressed in air
+			if ((toys.platformer.canJump(th)
+				||(key.doublejump&&(th.accy>=0)))
+				
+				&&gbox.keyIsHit(key.jump)
+				&&(th.curjsize==0)) {
+				
 				if (key.audiojump) gbox.hitAudio(key.audiojump);
 				th.accy=-th.jumpaccy;
 				th.curjsize=th.jumpsize;
 				return true;
 			} else if (th.curjsize&&gbox.keyIsHold(key.jump)) { // Jump modulation
+				th.accy--;
+				th.curjsize--;
+			} else if (gbox.keyIsHold(key.jetjump)) {
 				th.accy--;
 				th.curjsize--;
 			} else

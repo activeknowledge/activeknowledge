@@ -1,0 +1,23 @@
+Game States
+-----------
+200: Game intro
+300: Game start
+400: End level intro animation (fadeout)
+401: Level intro? (gbox.soloGroup, levelIntroAnimation)
+402: Next level? (gbox.playAllGroups)
+501: ? (fadeout)
+600: New life intro? (gbox.soloGroup, newLifeIntroAnimation)
+601: New life? (newLife)
+700: Game over lose? (reset music, gameOverIntroAnimation)
+800: End level intro animation
+801: Game over win? (reset music, gameEndingIntroAnimation)
+
+Game intro
+Game start
+New life intro
+Level intro
+New life
+End level intro
+Next level
+Game over lose
+Game over win
