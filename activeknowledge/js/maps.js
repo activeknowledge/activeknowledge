@@ -68,9 +68,8 @@ maps = [
 	[6, 'F']
 ],
 [
-	[5, 28, 'start', 0],
-	[15, 28, 'jetpack', 1],
-	[35, 28, 'finish', 2]
+	[5, 25, 'start', 0],
+	[35, 28, 'finish', 1]
 ]
 ],
 
@@ -106,7 +105,7 @@ maps = [
 "x                                            oooooooooo                      x",
 "x                                  oooooo                                    x",
 "x                                                                            x",
-"xxxxxxxxxxxxxxxwwwwwwwwwwwwwwwxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"	// 30
+"xxxxxwwwwxxxxxxwwwwwwwwwwwwwwwxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"	// 30
 //    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
 ], 
 [  
@@ -119,11 +118,110 @@ maps = [
 	[6, 'F']
 ],
 [
- 	[5, 28, 'start', 0],
+ 	[3, 25, 'start', 0],
 	[13, 28, 'roller', 1],
 	[25, 28, 'helmBlue', 4],
 	[32, 28, 'legs', 2],
 	[49, 25, 'finish', 3]
 ]
+],
+
+//maps[1]: Large empty test room
+[
+[
+"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",	// 0
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",	// 5
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",	// 10
+"x                                                                            x",
+"x                                                                            x",
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",	// 15
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+"x                                                                            x",	// 20
+"x                                                                            x",
+"x                                                                            x",
+"x                                                                            x",
+"x            xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          xxxxxxxxxxxxxxxxxxxxxxxxx",
+"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",	// 25
+"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
+"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
+"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
+"xxxxxxxxxxxxxxNNNNNNNNNNNNNNNNNNNNNNNNNNNNxxxxxxxxxxxx"	// 30
+//    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
+], 
+[  
+ 	[0, 'X'],
+	[1, 'x'],
+	[2, 'o'],
+	[3, 'w'],
+	[4, ' '],
+	[null, 'N']
+],
+[
+ 	[5, 25, 'start', 0],
+	[10, 28, 'jetpack', 1],
+	[48, 28, 'finish', 2]
 ]
+],
+
+[
+[
+"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+"x                                      x",
+"x                                      x",
+"x                                      x",
+"x                                      x",
+"x                                      x",
+"x                                      x",
+"x              xxxxxxxxxxxxxxxxxxxxxxxxx",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"x              x",
+"xooooo         x",
+"x              x",
+"x         ooooox",
+"x              x",
+"xxxxxxxxxxxxxxxx"
+], 
+[ 
+	[0, 'X'],
+	[1, 'x'],
+	[2, 'o'],
+	[3, 'w'],
+	[4, ' '],
+	[5, 'f'],
+	[6, 'F']
+],
+[
+	[7, 25, 'start', 0],
+	[35, 28, 'finish', 1]
+]
+]
+
 ];

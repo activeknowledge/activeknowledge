@@ -9,7 +9,7 @@ var currentLevel;
 var frameCount = 0;
 
 // Game flags
-var isGameActive = true;
+var isGameActive = false;
 
 //------------ CONSTANTS ------------//
 // Display
@@ -21,8 +21,10 @@ DISPLAY_ZOOM_LVL = 2;
 var TIME_LIMIT = 10;
 
 // Special level pointers
+var LVL_STARTING_LEVEL = 0;
 var LVL_EMPTY_TEST_SM = 0;			// Small empty test room
 var LVL_EMPTY_TEST_LG = 1;		// Large empty test room
+var LVL_HALL_TEST = 2;
 
 // Camera
 var CAM_DEADZONE_X = 96;
@@ -32,6 +34,7 @@ var CAM_DEADZONE_Y = 96;
 var SIZE_PLAYER_W = 16;
 var SIZE_PLAYER_H = 64;
 var SIZE_ITEM = 16;
+var SIZE_TILE = 16;
 
 // Map array pointers
 var MAP_ARRAY_DATA = 0;
@@ -39,8 +42,9 @@ var MAP_TILE_DATA = 1;
 var MAP_ITEM_DATA = 2;
 
 // Game states
-var GAME_STATE_LEVEL_START = 401;
 var GAME_STATE_LEVEL_COMPLETE = 400;
+var GAME_STATE_LEVEL_INTRO = 401;
+var GAME_STATE_LEVEL_START = 402;
 var GAME_STATE_LOSE = 700;
 var GAME_STATE_WIN = 801;
 
@@ -169,7 +173,7 @@ function main()
 	gbox.setGroups(['background', 'items', 'player', 'game']);
 	
 	// Set initial level
-	currentLevel = LVL_EMPTY_TEST_SM;
+	currentLevel = LVL_STARTING_LEVEL;
 	
 	
 	// Create game object in 'game' group
@@ -249,12 +253,14 @@ function main()
 		if (reset) {
 			toys.resetToy(this, 'default-blinker');
 			toys.resetToy(this, 'timer_between_level');
-			loadLevel(1);
-			alert(currentLevel);
+			
+			// Increment level and load
+			// TODO: Boundary on number of levels
+			currentLevel++;
+			loadLevel(currentLevel);
 		} else {
-			gbox.blitFade(gbox.getBufferContext(), { alpha: 1 });
-
-			return toys.timer.after(this,'timer_between_level',60);
+			gbox.blitFade(gbox.getBufferContext(),{alpha:1});
+			return toys.text.blink(this,"default-blinker",gbox.getBufferContext(),{font:"small",text:"GET READY!",valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH(),blinkspeed:5,times:6});
 		}
 	}; 	
  	
@@ -265,11 +271,20 @@ function main()
  	
  	// Runs on beginning of new life
  	maingame.newLife=function() {
+ 		// Player back to start
+ 		// TODO: Halfway markers?
+ 		resetPlayer();
  		
+ 		// Reset clock
+ 		resetClock();
+ 		
+ 		// Activate game
+ 		isGameActive = true;
  	};
  	
  	maingame.gameIsOver=function() {
- 		return true;
+ 		var player_obj = gbox.getObject('player', 'player_id');
+ 		if (player_obj.lives == 0) return true;
  	};
 	
 	/*
@@ -277,39 +292,30 @@ function main()
 	 * 		players/objects in game.
 	 */
 	maingame.initializeGame = function() {
-		
-		// Add player
-		addPlayer();
-
-		items = loadItems(currentLevel);
-		
-		// Add items
-		for (var i in items)
-		{
-			addItem(items[i][0], items[i][1], items[i][2], items[i][3]);
-		}
-		
-		// Add map
-		addMap();
-		
-		// Get time for timer management
-		timeStarted = (new Date()).getTime();
-		
 		// Create HUD
 		maingame.hud.setWidget('time_left', {
 			widget: 'label',
 			font:	'small',
 			value:	0,
-			dx:		25, // gbox.getScreenW()-40,
+			dx:		10, // gbox.getScreenW()-40,
+			dy: 	10,
+			clear:	true
+		});
+		
+		maingame.hud.setWidget('lives', {
+			widget: 'label',
+			font:	'small',
+			value:	0,
+			dx:		10,
 			dy: 	25,
 			clear:	true
 		});
 		
-		isGameActive = true;
+		loadLevel(currentLevel);
 	};
 	
- 	maingame.changeLevel = function() {
- 		//alert('next level');
+ 	maingame.changeLevel = function(level) {
+ 		// TODO: Do something with this
  	};	
 	
 	// TODO: Move to initialize for game if need be
@@ -329,7 +335,7 @@ function loadMap() {
 		
 		tileIsSolidCeil: function(obj, t) {
 			var ceilingCheck = false;
-			ceilingCheck = (t != 4);
+			ceilingCheck = (t != 4 && t != null);
 			return ceilingCheck;
 		},
 		tileIsSolidFloor: function(obj, t) {
@@ -350,7 +356,7 @@ function loadMap() {
 					alert('ERROR: Unhandled tile collision');
 					break;
 			}
-			return (floorCheck && t != 4 && t != 5 && t != 6);
+			return (floorCheck && t != 4 && t != 5 && t != 6 && t != null);
 		}
 	};
 	// Set height and width parameters of map
@@ -376,7 +382,26 @@ function loadMapData(level) {
  * loadItems(level): Populates items array with series of objects specified in maps[level][2].
  */
 function loadItems(level) {
-	return maps[level][2];
+	return maps[level][MAP_ITEM_DATA];
+}
+
+// Place player at the location of 'start' item
+// TODO: Also return player to original item state
+function resetPlayer() {
+	var player_obj = gbox.getObject('player', 'player_id');
+	
+	// Reset position ('start' item * tile size)
+	var startX = (maps[currentLevel][MAP_ITEM_DATA][0][0] * SIZE_TILE);
+	var startY = (maps[currentLevel][MAP_ITEM_DATA][0][1] * SIZE_TILE);
+	player_obj.x = startX;
+	player_obj.y = startY;
+	
+	// Reset life
+	player_obj.isKilled = false;
+}
+
+function resetClock() {
+	timeStarted = (new Date()).getTime();
 }
 
 /*
@@ -412,14 +437,41 @@ function gameOverLose() {
  */
 function levelCompleteWin() {
 	isGameActive = false;
-	maingame.setState(GAME_STATE_LEVEL_COMPLETE);
+	maingame.setState(GAME_STATE_LEVEL_COMPLETE); // 400
 }
 
 function loadLevel(level) {
+	// Clean up previous level
+	gbox.trashGroup('items');
+	gbox.purgeGarbage();
+	
 	currentLevel = level;
-	alert('level ' + currentLevel);
+	
+	// Add player
+	addPlayer();
+
+	// Get item array for current level
+	items = loadItems(currentLevel);
+	
+	// Set player position based on 'start' item 
+	resetPlayer();	
+	
+	// Add items
+	for (var i in items)
+	{
+		addItem(items[i][0], items[i][1], items[i][2], items[i][3]);
+	}
+	
+	// Add map
+	addMap();
+	
+	// Load map from current level
 	loadMap();
-	maingame.initializeGame();
+	
+	// Get time for timer management
+	resetClock();
+	
+	isGameActive = true;
 }
 
 function addItem(tile_x, tile_y, item_type, object_id) {
@@ -542,24 +594,39 @@ function addMap()
 		group: 'background',	// rendering group
 
 		first: function() {
+			var player_obj = gbox.getObject('player', 'player_id');
+			
 			// Increment frame count
 			// TODO: Consider frameCount overflow
 			frameCount++;
 			
 			// If gameplay is active...
 			if (isGameActive) {
+				
+				// Player safety checks
+				// Make sure player is inside map
+				if ( help.getTileInMap(player_obj.x, player_obj.y, map, 'shit', 'map') == 'shit' )
+				{
+					if (!player_obj.isKilled) {
+						player_obj.kill();
+					}
+				}
+					
 				// ...update level timer
 				secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
 				secondsElapsed = secondsElapsed.toFixed(3);
 				
-				// Set hud timer to current time.
-				maingame.hud.setValue('time_left', 'value', secondsElapsed);
-			    maingame.hud.redraw();
+				// Show HUD
+				// TODO: Only show once
+				maingame.hud.showWidgets(['time_left', 'lives']);
 			} else {
-				// Hide timer
-				maingame.hud.hideWidgets(['time_left']);
+				// Hide HUD during transitions
+				maingame.hud.hideWidgets(['time_left', 'lives']);
 			}
-			
+			// Set hud timer to current time.
+			maingame.hud.setValue('time_left', 'value', 'TIME ' + secondsElapsed);
+			maingame.hud.setValue('lives', 'value', 'LIVES ' + player_obj.lives);
+		    maingame.hud.redraw();
 		},
 		
 		blit: function() {
@@ -608,6 +675,10 @@ function addPlayer()
 		head_tileset: 'plyr_tiles_head',	// sprite head section
 		helm_tileset: 'plyr_tiles_helm',	// sprite helm section
 		
+		// Player game properties
+		lives: 3,
+		isKilled: false,
+		
 		// Starting body types
 		btm_type: 'legs',
 		top_type: 'body',
@@ -634,10 +705,7 @@ function addPlayer()
 			// to access helper methods
 			toys.platformer.initialize(this, {});
 			
-			// Set default player position
-			// TODO: Make default location a constant point
-			this.x = 32;
-			this.y = 32;
+			// Set player size
 			this.w = SIZE_PLAYER_W,
 			this.h = SIZE_PLAYER_H,
 			
@@ -848,6 +916,14 @@ function addPlayer()
 			gbox.blitTile(gbox.getBufferContext(), topBlitData);
 			gbox.blitTile(gbox.getBufferContext(), headBlitData);
 			gbox.blitTile(gbox.getBufferContext(), helmBlitData);
+		},
+		
+		kill: function() {
+			this.isKilled = true;
+			isGameActive = false;
+			// maingame.hud.addValue('lives','value',-1); // Then decrease the lives count.
+			maingame.playerDied({wait:50});
+			this.lives--;
 		},
 		
 		wallCollisionCheck: function() {

@@ -1370,7 +1370,9 @@ var toys={
 		* 
 		*/
 		verticalTileCollision:function(th,map,tilemap) {
-			var bottom=help.getTileInMap(th.x+(th.w/2),th.y+th.h,map,0,tilemap);
+			// activeknowledge: Bottom tiles outside of map should let you fall through
+			// ifout for bottom returns null instead of zero.
+			var bottom=help.getTileInMap(th.x+(th.w/2),th.y+th.h,map,null,tilemap);
 			var top=help.getTileInMap(th.x+(th.w/2),th.y,map,0,tilemap);
 			th.touchedfloor=false;
 			th.touchedceil=false;
