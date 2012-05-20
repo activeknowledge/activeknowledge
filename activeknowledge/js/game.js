@@ -9,7 +9,7 @@ var timeStarted;
 var secondsElapsed = 0;
 var finishTime = 0;
 var currentLevel;
-var currentLives = 3;
+var currentLives;
 var frameCount = 0;
 
 // Game flags
@@ -49,6 +49,9 @@ var GAME_STATE_LEVEL_START = 402;
 var GAME_STATE_LOSE = 700;
 var GAME_STATE_WIN = 801;
 
+// Player
+var PLYR_START_LIVES = 3;
+
 // On load, run loadResources
 window.addEventListener('load', loadResources, false);
 
@@ -62,12 +65,23 @@ function loadResources()
 		height: DISPLAY_HEIGHT,
 		zoom: DISPLAY_ZOOM_LVL
 	});
+	
+	// Add bundle (audio, images, fonts, etc.)
+	// TODO: Move all resources to bundle(s)
+	//gbox.addBundle({file:"res/bundle.js"});
+	
+	// Add audio
+	audioserver="res/snd/";
+	gbox.addAudio('intro-music',[audioserver+'intro-looped.mp3',audioserver+'intro-looped.ogg'],{channel:'bgmusic',loop:true});
+	gbox.addAudio('level-music',[audioserver+'level.mp3',audioserver+'level.ogg'],{channel:'bgmusic',loop:true});
 
 	// Add font letter image as 'font'
 	gbox.addImage('font', 'res/img/font.png');
 	
-	// Add logo image
-	gbox.addImage('title', 'res/img/title.png');
+	// Add full-page images (title, level intro, etc.)
+	// TODO: Choose proper size based on display size
+	gbox.addImage('title', 'res/img/title_320.png');
+	gbox.addImage('levelintro', 'res/img/levelintro_320.png');
 	gbox.addImage('logo', 'res/img/logo.png');
 	
 	// Player sprite
@@ -173,10 +187,7 @@ function main()
 {
 	// Create object groups
 	gbox.setGroups(['background', 'items', 'player', 'game']);
-	
-	// Set initial level
-	currentLevel = LVL_STARTING_LEVEL;
-	
+	gbox.setAudioChannels({bgmusic:{volume:0.8},sfx:{volume:1.0}});
 	
 	// Create game object in 'game' group
 	maingame = gamecycle.createMaingame('game', 'game');
@@ -192,6 +203,9 @@ function main()
 	maingame.gameTitleIntroAnimation=function(reset) {
 		if (reset) {
 			// toys.resetToy(this, 'rising');
+			
+			// Start intro music
+			gbox.playAudio('intro-music');
 		}
 		
 		// Clear screen
@@ -268,11 +282,14 @@ function main()
 			
 			// Increment level and load
 			// TODO: Boundary on number of levels
+			// TODO: This should be done outside of animation management
 			currentLevel++;
 			loadLevel(currentLevel);
+			//gbox.playAudio('level-music');
 		} else {
 			gbox.blitFade(gbox.getBufferContext(),{alpha:1});
-			return toys.text.blink(this,"default-blinker",gbox.getBufferContext(),{font:"small",text:"GET READY!",valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH(),blinkspeed:5,times:6});
+			gbox.blitAll(gbox.getBufferContext(),gbox.getImage('levelintro'),{dx:0,dy:0});
+			return toys.text.blink(this,"default-blinker",gbox.getBufferContext(),{font:"small",text:"GET READY!",dx:200,dy:200,blinkspeed:5,times:6});
 		}
 	}; 	
  	
@@ -319,15 +336,15 @@ function main()
 			clear:	true
 		});
 		
+		// Set initial level
+		currentLevel = LVL_STARTING_LEVEL;
+		currentLives = PLYR_START_LIVES;
 		loadLevel(currentLevel);
 	};
 	
  	maingame.changeLevel = function(level) {
  		// TODO: Do something with this
- 	};	
-	
-	// TODO: Move to initialize for game if need be
-	loadMap();
+ 	};
 	
 	// Start game loop
 	gbox.go();
@@ -482,15 +499,6 @@ function callWhenColliding(obj,group,call) {
 	return false;
 }
 
-// Set game state on win/lose conditions
-function gameOverWin() {
-	maingame.setState(GAME_STATE_WIN);  //gameEndingIntroAnimation
-}
-
-function gameOverLose() {
-	maingame.setState(GAME_STATE_LOSE);	// gameoverIntroAnimation
-}
-
 /*
  * levelCompleteWin: Triggered on finish collision. Stop gameplay,
  * set LEVEL_COMPLETE game state, wait and then load next level.
@@ -499,6 +507,15 @@ function levelCompleteWin() {
 	isGameActive = false;
 	isLevelComplete = true;
 	maingame.setState(GAME_STATE_LEVEL_COMPLETE); // 400
+}
+
+/*
+ * Resets all game objects to prevent rollover of previous game values
+ * into next game.
+ */
+function resetGame() {
+	var player_obj = gbox.getObject('player', 'player_id');
+	player_obj.resetLives();
 }
 
 function loadLevel(level) {
@@ -534,6 +551,8 @@ function loadLevel(level) {
 	
 	isGameActive = true;
 	isLevelComplete = false;
+	
+	
 }
 
 function addItem(tile_x, tile_y, item_type, object_id) {
@@ -1003,7 +1022,6 @@ function addPlayer()
 		kill: function() {
 			this.isKilled = true;
 			isGameActive = false;
-			// maingame.hud.addValue('lives','value',-1); // Then decrease the lives count.
 			maingame.playerDied({wait:50});
 			currentLives--;
 		},

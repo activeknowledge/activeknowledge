@@ -1,0 +1,18 @@
+Reset game objects on new game after game over
+Music/sfx plan
+Continue screen on game over
+Review code for things to remove
+Review code for modularity
+Jetpack to legs conversion screws up leg frames?
+ - Face right, press Z to lift to legs, hold left key after starting lift. Legs seem to animate backwards ("kicking" motion)
+Jetpack velocity on pickup set to current velocity
+ - Jumping right before pickup sets y velocity to fast up
+Pause screen
+ - Level, lives, time
+ - Zoom out to 640/480? (Too easy for hidden items)
+Level intro screen portraits
+ - Laser
+ - Double portrait
+Create logo and re-add to load page
+Move level load out of levelIntroAnimation
+Audio does not loop when addAudio loop:true
