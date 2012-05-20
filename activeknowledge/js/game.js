@@ -1,3 +1,6 @@
+// TODO: Pause menu
+// TODO: Reset objects on game start after game over
+
 // Game variables
 var maingame;
 var map;
@@ -6,6 +9,7 @@ var timeStarted;
 var secondsElapsed = 0;
 var finishTime = 0;
 var currentLevel;
+var currentLives = 3;
 var frameCount = 0;
 
 // Game flags
@@ -22,9 +26,6 @@ var TIME_LIMIT = 10;
 
 // Special level pointers
 var LVL_STARTING_LEVEL = 0;
-var LVL_EMPTY_TEST_SM = 0;			// Small empty test room
-var LVL_EMPTY_TEST_LG = 1;		// Large empty test room
-var LVL_HALL_TEST = 2;
 
 // Camera
 var CAM_DEADZONE_X = 96;
@@ -56,7 +57,7 @@ function loadResources()
 {
 	// Initialize Akihabara with default settings, passing browser title
 	help.akihabaraInit({
-		title: 'Active Knowledge', 
+		title: 'Nobody Person - pacified citizen games', 
 		width: DISPLAY_WIDTH,
 		height: DISPLAY_HEIGHT,
 		zoom: DISPLAY_ZOOM_LVL
@@ -241,11 +242,20 @@ function main()
  			finishTime = secondsElapsed;
  		} else {
  			// Write level complete message
- 			gbox.blitText(gbox.getBufferContext(),{font:'small',text:'STAGE CLEAR!',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
- 			gbox.blitText(gbox.getBufferContext(), {font:'small',text:finishTime+' SEC',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:20,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+ 			//gbox.blitText(gbox.getBufferContext(),{font:'small',text:'STAGE CLEAR!',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+ 			//gbox.blitText(gbox.getBufferContext(), {font:'small',text:finishTime+' SEC',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:20,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
  			
- 			// Fade out after a few seconds
- 			return toys.timer.after(this,'timer_after_level',60);
+ 			// Must stay alive 2 seconds after clear, 
+ 			// Otherwise clear is reversed, player is treated like crap and level starts over
+ 			var player_obj = gbox.getObject('player', 'player_id');
+ 			if (!toys.timer.after(this, 'timer_after_level', 60)) {
+ 				
+ 			} else {
+ 				return true;
+ 			}
+ 			
+ 			// Used to just fade out after a few seconds
+ 			// return toys.timer.after(this,'timer_after_level',60);
  		}
  		return false;
  	};
@@ -268,7 +278,10 @@ function main()
  	
  	// Game events runs on each frame, for global event checks
  	maingame.gameEvents=function() {
- 		
+ 		// Display any text based on game state
+ 		// On death (500): NOBODY DIED
+ 		// On level complete (400): STAGE CLEAR
+ 		displayStateText(maingame.state);
  	};
  	
  	// Runs on beginning of new life
@@ -320,6 +333,20 @@ function main()
 	gbox.go();
 }
 
+// For any state with default text, this function
+// will display it when fired by gameEvents().
+function displayStateText(state) {
+	switch (maingame.state) {
+		case 500:
+			gbox.blitText(gbox.getBufferContext(),{font:'small',text:'NOBODY DIED',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+			break;
+		case 400:
+			gbox.blitText(gbox.getBufferContext(),{font:'small',text:'STAGE CLEAR!',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:0,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+			gbox.blitText(gbox.getBufferContext(), {font:'small',text:finishTime+' SEC',valign:gbox.ALIGN_MIDDLE,halign:gbox.ALIGN_CENTER,dx:0,dy:20,dw:gbox.getScreenW(),dh:gbox.getScreenH()});
+			break;
+	}
+}
+
 /*
  * loadMap(): Populates map object to match current level.
  */
@@ -330,6 +357,7 @@ function loadMap() {
 		
 		tileIsSolidCeil: function(obj, t) {
 			var ceilingCheck = false;
+			// Don't collide with empty tiles or tiles matching helm
 			ceilingCheck = (t != 4 && tileCheck(obj.helm_type, t));
 			return ceilingCheck;
 		},
@@ -339,7 +367,7 @@ function loadMap() {
 			var tileTest = tileCheck(obj.helm_type, t);
 			
 			// 20120519: Removed 5 and 6
-			return ((floorTest && tileTest) && t != 4 && t != null);
+			return ((floorTest || tileTest) && t != 4 && t != null);
 		}
 	};
 	// Set height and width parameters of map
@@ -382,15 +410,16 @@ function tileCheck(helm, tile) {
 function floorCheck(btm, tile) {
 	
 	var floorCheck = false;
+	var helmTiles = (tile != 2) && (tile != 6) && (tile != 10) && (tile != 14);
 	switch (btm)
 	{
 		case 'legs':
 		case 'spring':
 		case 'jetpack':
-			floorCheck = (tile != 3);
+			floorCheck = (tile != 3) && helmTiles;
 			break;
 		case 'roller':
-			floorCheck = true;
+			floorCheck = helmTiles;
 			break;
 			// Roller can move across 3 (roller track)
 		default:
@@ -468,6 +497,7 @@ function gameOverLose() {
  */
 function levelCompleteWin() {
 	isGameActive = false;
+	isLevelComplete = true;
 	maingame.setState(GAME_STATE_LEVEL_COMPLETE); // 400
 }
 
@@ -503,6 +533,7 @@ function loadLevel(level) {
 	resetClock();
 	
 	isGameActive = true;
+	isLevelComplete = false;
 }
 
 function addItem(tile_x, tile_y, item_type, object_id) {
@@ -582,13 +613,15 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 		},
 		
 		pickupItem: function(obj) {
-			// Finish gate collision ends the level.
-			if (this.item_type == 'finish') {
-				levelCompleteWin();
-			} else {
+			if (this.isActive) {
 			
-				// Kill self
-				if (this.isActive) {
+				// Finish gate collision ends the level.
+				if (this.item_type == 'finish') {
+					this.isActive = false;
+					levelCompleteWin();
+				} else {
+				
+					// Kill self
 					this.destroy();
 				
 					// Set player based on item
@@ -609,7 +642,9 @@ function addItem(tile_x, tile_y, item_type, object_id) {
 						default:
 							break;
 					}
+					
 				}
+			
 			}
 		}
 	});
@@ -634,11 +669,11 @@ function addMap()
 			// TODO: Consider frameCount overflow
 			frameCount++;
 			
-			// If gameplay is active...
-			if (isGameActive) {
+			// If gameplay is active or the level was just completed...
+			if (isGameActive || isLevelComplete) {
 				
 				// Player safety checks
-				// Make sure player is inside map
+				// Make sure player is inside map, kill if not
 				if ( help.getTileInMap(player_obj.x, player_obj.y, map, 'shit', 'map') == 'shit' )
 				{
 					if (!player_obj.isKilled) {
@@ -647,12 +682,16 @@ function addMap()
 				}
 					
 				// ...update level timer
-				secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
-				secondsElapsed = secondsElapsed.toFixed(3);
+				if (isGameActive) {
+					secondsElapsed = ((new Date()).getTime() - timeStarted) / 1000;
+					secondsElapsed = secondsElapsed.toFixed(3);
+				}
 				
-				// Show HUD
-				// TODO: Only show once
-				maingame.hud.showWidgets(['time_left', 'lives']);
+				// Show HUD when game is running only
+				// TODO: Run showWidgets only once
+				if (isGameActive)
+					maingame.hud.showWidgets(['time_left', 'lives']);
+				else maingame.hud.hideWidgets(['time_left', 'lives']);
 			} else {
 				// Hide HUD during transitions
 				maingame.hud.hideWidgets(['time_left', 'lives']);
@@ -710,7 +749,7 @@ function addPlayer()
 		helm_tileset: 'plyr_tiles_helm',	// sprite helm section
 		
 		// Player game properties
-		lives: 3,
+		lives: currentLives,
 		isKilled: false,
 		
 		// Starting body types
@@ -815,15 +854,21 @@ function addPlayer()
 		first: function() {
 			
 			// "Keys" methods apply acceleration based on direction pressed.
-			toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
-			// Jetpack can lift with jump key
-			if (this.btm_type == 'jetpack')
-				toys.platformer.jumpKeys(this, { jetjump: 'a' });
-				//toys.platformer.verticalKeys(this, { up: 'up' });
-			
-			// Legs can jump with jump key
-			if (this.btm_type == 'legs')
-				toys.platformer.jumpKeys(this, { jump: 'a' });
+			if (isGameActive) {
+				toys.platformer.horizontalKeys(this, { left: 'left', right: 'right' });
+				// Jetpack can lift with jump key
+				if (this.btm_type == 'jetpack')
+					toys.platformer.jumpKeys(this, { jetjump: 'a' });
+					//toys.platformer.verticalKeys(this, { up: 'up' });
+				
+				// Legs can jump with jump key
+				if (this.btm_type == 'legs')
+					toys.platformer.jumpKeys(this, { jump: 'a' });
+			} else {
+				// TODO: Dance animation
+				// this.accx = 0;
+				// this.accy = 0;
+			}
 			
 			// TODO: Last left or last right variables to determine which way to face.
 			// Or, just check against what the last animation was?
@@ -960,7 +1005,7 @@ function addPlayer()
 			isGameActive = false;
 			// maingame.hud.addValue('lives','value',-1); // Then decrease the lives count.
 			maingame.playerDied({wait:50});
-			this.lives--;
+			currentLives--;
 		},
 		
 		wallCollisionCheck: function() {

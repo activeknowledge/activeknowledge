@@ -23,8 +23,37 @@
  * 1: Platform test room: Test room with platforms for movement testing.
  */
 maps = [
+
+[
+[
+"bbbbbbbbbbbb",
+"b          b",
+"b          b",
+"b          b",
+"b          b",
+"b          b",
+"b          b",
+"bbbbbbbbbbbb"
+], 
+[ 
+	[0, 'X'],
+	[1, 'x'],
+	[3, 'w'],
+	[4, ' '],
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y']
+],
+[
+	[2, 2, 'start', 0],
+	[5, 6, 'helmGreen', 2],
+	[9, 6, 'finish', 1]
+]
+],
         
-// maps[0]: Small empty test room
+// maps[1]
 [
 [
 "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -77,7 +106,7 @@ maps = [
 ]
 ],
 
-// maps[1]: Large empty test room
+// maps[2]
 [
 [
 "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",	// 0
@@ -109,7 +138,7 @@ maps = [
 "b                                            rrrrrrrrrr                      b",
 "b                                  rrrrrr                                    b",
 "b                                                                            b",
-"bbbbbwwwwbbbbbbwwwwwwwwwwwwwwwbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"	// 30
+"bbbbbwwwwbbbbbbwwwwwwwwwwwwwwwrbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"	// 30
 //    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
 ], 
 [  
@@ -126,107 +155,141 @@ maps = [
 [
  	[3, 25, 'start', 0],
 	[13, 28, 'roller', 1],
-	[32, 28, 'legs', 2],
+	[29, 28, 'legs', 2],
 	[24, 28, 'helmRed', 4],
 	[49, 25, 'finish', 3]
 ]
 ],
 
-//maps[1]: Large empty test room
+// maps[3]
 [
 [
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",	// 0
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 5
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",	// 10
-"x                                                                            x",
-"x                                                                            x",
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",	// 15
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-"x                                                                            x",	// 20
-"x                                                                            x",
-"x                                                                            x",
-"x                                                                            x",
-"x            xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          xxxxxxxxxxxxxxxxxxxxxxxxx",
-"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",	// 25
-"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
-"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
-"x            xNNNNNNNNNNNNNNNNNNNNNNNNNNNNx          x",
-"xxxxxxxxxxxxxxNNNNNNNNNNNNNNNNNNNNNNNNNNNNxxxxxxxxxxxx"	// 30
+"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+"b                                                                            b",	// 20
+"b                                                                            b",
+"b                                                                            b",
+"b                                                                            b",
+"b            bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb          bbbbbbbbbbbbbbbbbbbbbbbbb",
+"b            bNNNNNNNNNNNNNNNNNNNNNNNNNNNNb          b",	// 25
+"b            bNNNNNNNNNNNNNNNNNNNNNNNNNNNNb          b",
+"b            bNNNNNNNNNNNNNNNNNNNNNNNNNNNNb          b",
+"b            bNNNNNNNNNNNNNNNNNNNNNNNNNNNNb          b",
+"bbbbbbbbbbbbbbNNNNNNNNNNNNNNNNNNNNNNNNNNNNbbbbbbbbbbbb"	// 30
 //    5    5    5    5    5    5    5    5    5    5    5    5    5    5    5
 ], 
 [  
- 	[0, 'X'],
+	[0, 'X'],
 	[1, 'x'],
-	[2, 'o'],
 	[3, 'w'],
 	[4, ' '],
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y'],
 	[null, 'N']
 ],
 [
- 	[5, 25, 'start', 0],
-	[10, 28, 'jetpack', 1],
-	[48, 28, 'finish', 2]
+ 	[5, 6, 'start', 0],
+	[10, 9, 'jetpack', 1],
+	[48, 9, 'finish', 2]
 ]
 ],
 
+// map[4]
 [
 [
-"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x                                      x",
-"x              xxxxxxxxxxxxxxxxxxxxxxxxx",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"x              x",
-"xooooo         x",
-"x              x",
-"x         ooooox",
-"x              x",
-"xxxxxxxxxxxxxxxx"
+"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b                                      b",
+"b           yyybbbbbbbbrrrrbbbbbbbrrrbbb",
+"b         yyyyyb",
+"b        yyyyyyb",
+"b       yyyyyyyb",
+"b      yyyyyyyyb",
+"b     yyyyyyyyyb",
+"b    yyyyyyyyyyb",
+"b   yyyyyyyyyyyb",
+"b  yyyyyyyyyyyyb",
+"bggggggggggggggb",
+"b              b",
+"b              b",
+"b              b",
+"b              b",
+"b         gggggg",
+"b              b",
+"b              b",
+"brrrrr         b",
+"b              b",
+"b         bbbbbb",
+"b              b",
+"bbbbbbbbbbbbbbbb"
 ], 
 [ 
 	[0, 'X'],
 	[1, 'x'],
-	[2, 'o'],
 	[3, 'w'],
 	[4, ' '],
-	[5, 'f'],
-	[6, 'F']
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y'],
+	[null, 'N']
 ],
 [
 	[7, 25, 'start', 0],
-	[35, 28, 'finish', 1]
+	[7, 22, 'helmRed', 1],
+	[9, 20, 'helmGreen', 2],
+	[14, 18, 'jetpack', 3],
+	[15, 13, 'legs', 5],
+	[1, 16, 'helmYellow', 6],
+	[21, 1, 'helmRed', 7],
+	[36, 7, 'finish', 4]
+]
+],
+
+// map[5]
+[
+[
+"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+"b     b                                                 b",
+"b     b                                                 b",
+"b     b                                                 b",
+"b     b                                                 b",
+"b   bbb                                                 b", // 5
+"b  bbbb                                                 b",
+"bbbbbbb                                                 b",
+"b                                                       b",
+"b                                                       b",
+"b                                                       b", // 10
+"b                                                       b",
+"brrrbybybybybybbbbbbbbwwwwwwwwwwwwwwwwwwwy        y    yb"
+//    5    5    5    5    5    5    5    5    5    5    5
+], 
+[ 
+	[0, 'X'],
+	[1, 'x'],
+	[3, 'w'],
+	[4, ' '],
+	
+	[2, 'b'],	
+	[6, 'r'],
+	[10, 'g'],
+	[14, 'y']
+],
+[
+	[2, 2, 'start', 0],
+	[5, 1, 'helmRed', 2],
+	[3, 11, 'helmYellow', 3],
+	[22, 11, 'roller', 4],
+	[40, 11, 'legs', 5],
+	[55, 5, 'finish', 1]
 ]
 ]
 

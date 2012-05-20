@@ -377,6 +377,7 @@ var gamecycle={
 							break;
 						}
 						case 400: { // Fade out before changing the level
+							this.gameEvents();
 							if (this.endlevelIntroAnimation(false))
 								if (toys.fullscreen.fadeout(this,"fadeout",gbox.getBufferContext(),{fadespeed:0.05,audiochannelfade:"bgmusic"})) this.setState(401);
 							break;
@@ -399,6 +400,7 @@ var gamecycle={
 							break;
 						}
 						case 500: { // Wait after dead
+							this.gameEvents();
 							this._loselife.counter++;
 							if (this._loselife.counter==this._loselife.wait) this.setState(501);
 							break;
